@@ -11,7 +11,7 @@
 *   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "behavior_tree_core/condition_node.h"
+#include "behaviortree_cpp/condition_node.h"
 
 namespace BT
 {
@@ -24,8 +24,9 @@ void ConditionNode::halt()
 {
 }
 
-SimpleConditionNode::SimpleConditionNode(const std::string& name, TickFunctor tick_functor)
-  : ConditionNode(name, NodeParameters()), tick_functor_(std::move(tick_functor))
+SimpleConditionNode::SimpleConditionNode(const std::string& name, TickFunctor tick_functor,
+                                         const NodeParameters &params)
+  : ConditionNode(name, params), tick_functor_(std::move(tick_functor))
 {
 }
 

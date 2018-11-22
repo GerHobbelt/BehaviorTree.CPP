@@ -1,6 +1,6 @@
-#include "behavior_tree_core/xml_parsing.h"
-#include "behavior_tree_logger/bt_cout_logger.h"
-#include "Blackboard/blackboard_local.h"
+#include "behaviortree_cpp/xml_parsing.h"
+#include "behaviortree_cpp/loggers/bt_cout_logger.h"
+#include "behaviortree_cpp/blackboard/blackboard_local.h"
 
 #include "movebase_node.h"
 
@@ -41,7 +41,7 @@ const std::string xml_text = R"(
 // Use this function to create a SimpleActionNode that can access the blackboard
 NodeStatus CalculateGoalPose(TreeNode& self)
 {
-    const Pose2D mygoal = {1, 2, M_PI};
+    const Pose2D mygoal = {1.1, 2.3, 1.54};
 
     // RECOMMENDED: check if the blackboard is nullptr first
     if (self.blackboard())

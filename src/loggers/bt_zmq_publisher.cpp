@@ -1,5 +1,5 @@
-#include "behavior_tree_logger/bt_zmq_publisher.h"
-#include "behavior_tree_logger/bt_flatbuffer_helper.h"
+#include "behaviortree_cpp/loggers/bt_zmq_publisher.h"
+#include "behaviortree_cpp/loggers/bt_flatbuffer_helper.h"
 #include <future>
 
 namespace BT
@@ -91,7 +91,7 @@ void PublisherZMQ::callback(Duration timestamp, const TreeNode& node, NodeStatus
 {
     using namespace std::chrono;
 
-    std::array<uint8_t, 12> transition =
+    SerializedTransition transition =
         SerializeTransition(node.UID(), timestamp, prev_status, status);
     {
         std::unique_lock<std::mutex> lock(mutex_);

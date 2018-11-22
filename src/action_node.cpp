@@ -11,7 +11,7 @@
 *   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "behavior_tree_core/action_node.h"
+#include "behaviortree_cpp/action_node.h"
 
 namespace BT
 {
@@ -34,8 +34,9 @@ NodeStatus ActionNodeBase::executeTick()
 //-------------------------------------------------------
 
 SimpleActionNode::SimpleActionNode(const std::string& name,
-                                   SimpleActionNode::TickFunctor tick_functor)
-  : ActionNodeBase(name, NodeParameters()), tick_functor_(std::move(tick_functor))
+                                   SimpleActionNode::TickFunctor tick_functor,
+                                   const NodeParameters& params)
+  : ActionNodeBase(name, params), tick_functor_(std::move(tick_functor))
 {
 }
 

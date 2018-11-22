@@ -11,29 +11,41 @@
 *   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "behavior_tree_core/decorators/repeat_node.h"
+#include "behaviortree_cpp/decorators/repeat_node.h"
 
 namespace BT
 {
 constexpr const char* RepeatNode::NUM_CYCLES;
 
 RepeatNode::RepeatNode(const std::string& name, unsigned int NTries)
-  : DecoratorNode(name, {{NUM_CYCLES, std::to_string(NTries)}}), NTries_(NTries), TryIndx_(0)
+  : DecoratorNode(name, {{NUM_CYCLES, std::to_string(NTries)}}),
+    num_cycles_(NTries),
+    try_index_(0),
+    refresh_parameter_(false)
 {
 }
 
 RepeatNode::RepeatNode(const std::string& name, const NodeParameters& params)
-  : DecoratorNode(name, params), NTries_(1), TryIndx_(0)
+  : DecoratorNode(name, params),
+    try_index_(0),
+    refresh_parameter_(false)
 {
-    auto param = getParam<int>(NUM_CYCLES);
-    if (param)
+    if( !getParam(NUM_CYCLES, num_cycles_) )
     {
-        NTries_ = param.value();
+        throw std::runtime_error("Missing parameter [num_cycles] in RepeatNode");
     }
+    refresh_parameter_ = isBlackboardPattern( params.at(NUM_CYCLES) );
 }
 
 NodeStatus RepeatNode::tick()
 {
+    if( refresh_parameter_ )
+    {
+        // Read it at every tick. Since it points to the blackboard,
+        // it may change dynamically
+        getParam(RepeatNode::NUM_CYCLES, num_cycles_);
+    }
+
     setStatus(NodeStatus::RUNNING);
     NodeStatus child_state = child_node_->executeTick();
 
@@ -41,8 +53,8 @@ NodeStatus RepeatNode::tick()
     {
         case NodeStatus::SUCCESS:
         {
-            TryIndx_++;
-            if (TryIndx_ >= NTries_)
+            try_index_++;
+            if (try_index_ >= num_cycles_)
             {
                 setStatus(NodeStatus::SUCCESS);
                 child_node_->setStatus(NodeStatus::IDLE);
@@ -52,7 +64,7 @@ NodeStatus RepeatNode::tick()
 
         case NodeStatus::FAILURE:
         {
-            TryIndx_ = 0;
+            try_index_ = 0;
             setStatus(NodeStatus::FAILURE);
             child_node_->setStatus(NodeStatus::IDLE);
         }

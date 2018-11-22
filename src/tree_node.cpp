@@ -11,7 +11,7 @@
 *   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "behavior_tree_core/tree_node.h"
+#include "behaviortree_cpp/tree_node.h"
 #include <cstring>
 
 namespace BT
@@ -101,6 +101,11 @@ uint16_t TreeNode::UID() const
 void TreeNode::setRegistrationName(const std::string& registration_name)
 {
     registration_name_ = registration_name;
+}
+
+bool TreeNode::isBlackboardPattern(const std::string &str)
+{
+    return str.size() >= 4 && str[0] == '$' && str[1] == '{' && str.back() == '}';
 }
 
 const std::string& TreeNode::registrationName() const

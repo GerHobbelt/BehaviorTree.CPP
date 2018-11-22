@@ -10,7 +10,7 @@
 *   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "behavior_tree_core/decorator_node.h"
+#include "behaviortree_cpp/decorator_node.h"
 
 namespace BT
 {
@@ -56,8 +56,9 @@ void DecoratorNode::haltChild()
     }
 }
 
-SimpleDecoratorNode::SimpleDecoratorNode(const std::string& name, TickFunctor tick_functor)
-  : DecoratorNode(name, NodeParameters()), tick_functor_(std::move(tick_functor))
+SimpleDecoratorNode::SimpleDecoratorNode(const std::string& name, TickFunctor tick_functor,
+                                         const NodeParameters &params)
+  : DecoratorNode(name, params), tick_functor_(std::move(tick_functor))
 {
 }
 

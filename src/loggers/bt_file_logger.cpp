@@ -1,5 +1,5 @@
-#include "behavior_tree_logger/bt_file_logger.h"
-#include "behavior_tree_logger/bt_flatbuffer_helper.h"
+#include "behaviortree_cpp/loggers/bt_file_logger.h"
+#include "behaviortree_cpp/loggers/bt_flatbuffer_helper.h"
 
 namespace BT
 {
@@ -37,7 +37,7 @@ FileLogger::~FileLogger()
 void FileLogger::callback(Duration timestamp, const TreeNode& node, NodeStatus prev_status,
                           NodeStatus status)
 {
-    std::array<uint8_t, 12> buffer =
+    SerializedTransition buffer =
         SerializeTransition(node.UID(), timestamp, prev_status, status);
 
     if (buffer_max_size_ == 0)

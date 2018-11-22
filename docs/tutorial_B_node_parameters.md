@@ -3,12 +3,11 @@
 NodeParameters are like arguments passed to a function.
 
 They are a map of __key/value__ pairs (both strings) that are usually
-parsed from file.
+read from file.
 
 To create a TreeNodes that accepts NodeParameters, you must follow these rules:
 
-- Use inheritance. NodeParameters are __not supported__ by *SimpleActionNodes* nor
- *SimpleConditionNodes*.
+- Inherit from either ActionNodeBase,  ActionNode, ConditionNode or DecoratorNode.
 
 - You must provide a constructor with the following signature:
 
@@ -21,6 +20,9 @@ MyAction(const std::string& name, const BT::NodeParameters& params)
 ``` c++
 static const BT::NodeParameters& requiredNodeParameters()
 ```
+
+Alternatively, since version 2.2, Simple Nodes can also support NodeParameters.
+Check the [tutorial 6](tutorial_G_legacy.md) for details.
 
 
 ## Example: an Action requiring the parameter "message"
@@ -98,7 +100,7 @@ namespace BT{
 
 // This template specialization is needed if you want
 // to AUTOMATICALLY convert a NodeParameter into a Pose2D
-template <> Pose2D BT::convertFromString(const std::string& key)
+template <> Pose2D BT::convertFromString(const StringView& key)
 {
     // Three real numbers separated by semicolons.
     // You may use <boost/algorithm/string/split.hpp>  if you prefer
