@@ -21,29 +21,33 @@ constexpr const char* ParallelNode::THRESHOLD_KEY;
 ParallelNode::ParallelNode(const std::string& name, int threshold)
   : ControlNode::ControlNode(name, {{THRESHOLD_KEY, std::to_string(threshold)}}),
     threshold_(threshold),
-    refresh_parameter_(false)
+    read_parameter_from_blackboard_(false)
 {
 }
 
 ParallelNode::ParallelNode(const std::string &name,
                                const NodeParameters &params)
     : ControlNode::ControlNode(name, params),
-    refresh_parameter_(false)
-  {
-    if( !getParam(THRESHOLD_KEY, threshold_) )
+      read_parameter_from_blackboard_(false)
+{
+    read_parameter_from_blackboard_ = isBlackboardPattern( params.at(THRESHOLD_KEY) );
+    if(!read_parameter_from_blackboard_)
     {
-        throw std::runtime_error("Missing parameter [threshold] in ParallelNode");
+        if( !getParam(THRESHOLD_KEY, threshold_) )
+        {
+            throw std::runtime_error("Missing parameter [threshold] in ParallelNode");
+        }
     }
-    refresh_parameter_ = isBlackboardPattern( params.at(THRESHOLD_KEY) );
-  }
+}
 
 NodeStatus ParallelNode::tick()
 {
-    if( refresh_parameter_ )
+    if(read_parameter_from_blackboard_)
     {
-        // Read it at every tick. Since it points to the blackboard,
-        // it may change dynamically
-        getParam(THRESHOLD_KEY, threshold_);
+        if( !getParam(THRESHOLD_KEY, threshold_) )
+        {
+            throw std::runtime_error("Missing parameter [threshold] in ParallelNode");
+        }
     }
 
     success_childred_num_ = 0;

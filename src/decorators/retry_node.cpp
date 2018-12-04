@@ -21,29 +21,33 @@ RetryNode::RetryNode(const std::string& name, unsigned int NTries)
   : DecoratorNode(name, {{NUM_ATTEMPTS, std::to_string(NTries)}}),
     max_attempts_(NTries),
     try_index_(0),
-    refresh_parameter_(false)
+    read_parameter_from_blackboard_(false)
 {
 }
 
 RetryNode::RetryNode(const std::string& name, const NodeParameters& params)
   : DecoratorNode(name, params),
     try_index_(0),
-    refresh_parameter_(false)
+    read_parameter_from_blackboard_(false)
 {
-    if( !getParam(NUM_ATTEMPTS, max_attempts_) )
+    read_parameter_from_blackboard_ = isBlackboardPattern( params.at(NUM_ATTEMPTS) );
+    if(!read_parameter_from_blackboard_)
     {
-        throw std::runtime_error("Missing parameter [num_attempts] in RetryNode");
+        if( !getParam(NUM_ATTEMPTS, max_attempts_) )
+        {
+            throw std::runtime_error("Missing parameter [num_attempts] in RetryNode");
+        }
     }
-    refresh_parameter_ = isBlackboardPattern( params.at(NUM_ATTEMPTS) );
 }
 
 NodeStatus RetryNode::tick()
 {
-    if( refresh_parameter_ )
+    if( read_parameter_from_blackboard_ )
     {
-        // Read it at every tick. Since it points to the blackboard,
-        // it may change dynamically
-        getParam(NUM_ATTEMPTS, max_attempts_);
+        if( !getParam(NUM_ATTEMPTS, max_attempts_) )
+        {
+            throw std::runtime_error("Missing parameter [num_attempts] in RetryNode");
+        }
     }
 
     setStatus(NodeStatus::RUNNING);
@@ -66,8 +70,8 @@ NodeStatus RetryNode::tick()
             {
                 try_index_ = 0;
                 setStatus(NodeStatus::FAILURE);
-                child_node_->setStatus(NodeStatus::IDLE);
             }
+            child_node_->setStatus(NodeStatus::IDLE);
         }
         break;
 

@@ -14,22 +14,34 @@
 namespace BT
 {
 TimeoutNode::TimeoutNode(const std::string& name, unsigned milliseconds)
-  : DecoratorNode(name, {}), child_halted_(false), msec_(milliseconds)
+  : DecoratorNode(name, {}), child_halted_(false), msec_(milliseconds),
+    read_parameter_from_blackboard_(false)
 {
 }
 
 TimeoutNode::TimeoutNode(const std::string& name, const BT::NodeParameters& params)
   : DecoratorNode(name, params), child_halted_(false), msec_(0)
 {
-    auto param = getParam<unsigned>("msec");
-    if (param)
+    read_parameter_from_blackboard_ = isBlackboardPattern( params.at("msec") );
+    if(!read_parameter_from_blackboard_)
     {
-        msec_ = param.value();
+        if( !getParam("msec", msec_) )
+        {
+            throw std::runtime_error("Missing parameter [msec] in TimeoutNode");
+        }
     }
 }
 
 NodeStatus TimeoutNode::tick()
 {
+    if( read_parameter_from_blackboard_ )
+    {
+        if( !getParam("msec", msec_) )
+        {
+            throw std::runtime_error("Missing parameter [msec] in TimeoutNode");
+        }
+    }
+
     if (status() == NodeStatus::IDLE)
     {
         setStatus(NodeStatus::RUNNING);

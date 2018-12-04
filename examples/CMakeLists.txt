@@ -13,7 +13,6 @@ target_link_libraries(t02_factory_static ${BEHAVIOR_TREE_LIBRARY}  dummy_nodes )
 add_executable(t02_factory_dynamic  t02_factory_tree.cpp )
 target_link_libraries(t02_factory_dynamic ${BEHAVIOR_TREE_LIBRARY} )
 
-
 # This tutorial shows how the difference between Sequence and SequenceStar
 add_executable(t03_sequence_star        t03_sequence_star.cpp )
 target_link_libraries(t03_sequence_star movebase_node dummy_nodes ${BEHAVIOR_TREE_LIBRARY} )
@@ -23,4 +22,10 @@ add_executable(t04_blackboard         t04_blackboard.cpp )
 target_link_libraries(t04_blackboard  movebase_node ${BEHAVIOR_TREE_LIBRARY} )
 
 add_executable(t05_crossdoor         t05_crossdoor.cpp )
-target_link_libraries(t05_crossdoor  crossdoor_nodes ${BEHAVIOR_TREE_LIBRARY} )
+target_link_libraries(t05_crossdoor  crossdoor_nodes ${BEHAVIOR_TREE_LIBRARY}  )
+
+add_executable(t06_wrap_legacy         t06_wrap_legacy.cpp )
+target_link_libraries(t06_wrap_legacy  crossdoor_nodes ${BEHAVIOR_TREE_LIBRARY}  )
+
+add_executable(t07_include_trees  t07_include_trees.cpp )
+target_link_libraries(t07_include_trees ${BEHAVIOR_TREE_LIBRARY}   dummy_nodes )
