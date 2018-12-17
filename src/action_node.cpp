@@ -23,7 +23,7 @@ ActionNodeBase::ActionNodeBase(const std::string& name, const NodeParameters& pa
 
 NodeStatus ActionNodeBase::executeTick()
 {
-    just_constructed_ = false;
+    initializeOnce();
     NodeStatus prev_status = status();
 
     if (prev_status == NodeStatus::IDLE || prev_status == NodeStatus::RUNNING)
@@ -94,8 +94,7 @@ void AsyncActionNode::waitForTick()
 
 NodeStatus AsyncActionNode::executeTick()
 {
-    just_constructed_ = false;
-
+    initializeOnce();
     //send signal to other thread.
     // The other thread is in charge for changing the status
     if (status() == NodeStatus::IDLE)
@@ -146,6 +145,7 @@ void CoroActionNode::setStatusRunningAndYield()
 
 NodeStatus CoroActionNode::executeTick()
 {
+    initializeOnce();
     if (status() == NodeStatus::IDLE)
     {
         _p->coro = coroutine::create( [this]() { setStatus(tick()); } );
@@ -171,6 +171,20 @@ void CoroActionNode::halt()
         coroutine::destroy(_p->coro);
         _p->coro = 0;
     }
+}
+
+SyncActionNode::SyncActionNode(const std::string &name, const NodeParameters &parameters):
+    ActionNodeBase(name, parameters)
+{}
+
+NodeStatus SyncActionNode::executeTick()
+{
+    auto stat = ActionNodeBase::executeTick();
+    if( stat == NodeStatus::RUNNING)
+    {
+        throw std::logic_error("SyncActionNode MUSt never return RUNNING");
+    }
+    return stat;
 }
 
 

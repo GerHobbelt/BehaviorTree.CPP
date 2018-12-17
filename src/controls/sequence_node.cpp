@@ -18,6 +18,7 @@ namespace BT
 SequenceNode::SequenceNode(const std::string& name)
   : ControlNode::ControlNode(name, NodeParameters())
 {
+    setRegistrationName("Sequence");
 }
 
 NodeStatus SequenceNode::tick()
@@ -39,11 +40,7 @@ NodeStatus SequenceNode::tick()
             }
             case NodeStatus::FAILURE:
             {
-                for (unsigned t = 0; t <= index; t++)
-                {
-                    children_nodes_[t]->setStatus(NodeStatus::IDLE);
-                }
-                haltChildren(index + 1);
+                haltChildren(0);
                 return child_status;
             }
             case NodeStatus::SUCCESS:
@@ -59,10 +56,7 @@ NodeStatus SequenceNode::tick()
         }   // end switch
     }       // end for loop
 
-    for (auto& ch : children_nodes_)
-    {
-        ch->setStatus(NodeStatus::IDLE);
-    }
+    haltChildren(0);
     return NodeStatus::SUCCESS;
 }
 }
