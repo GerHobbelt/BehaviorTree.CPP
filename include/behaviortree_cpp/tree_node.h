@@ -117,7 +117,9 @@ class TreeNode
     BT::optional<T> getParam(const std::string& key) const
     {
         T out;
-        return getParam(key, out) ? std::move(out) : BT::nullopt;
+        if(getParam(key, out)) { return out; }
+
+        return BT::nullopt;
     }
 
     /** Get a parameter from the passed NodeParameters and convert it to type T.
