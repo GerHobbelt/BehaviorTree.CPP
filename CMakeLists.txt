@@ -111,6 +111,7 @@ if(catkin_FOUND)
     target_link_libraries(${BEHAVIOR_TREE_LIBRARY} PRIVATE ${BEHAVIOR_TREE_EXTERNAL_LIBRARIES} ${catkin_LIBRARIES})
     target_include_directories(${BEHAVIOR_TREE_LIBRARY} PUBLIC include 3rdparty ${catkin_INCLUDE_DIRS})
 
+
 else()
     include(GNUInstallDirs)
 
@@ -131,6 +132,10 @@ else()
 
     set_target_properties(${BEHAVIOR_TREE_LIBRARY} PROPERTIES PREFIX ""
                                                               SUFFIX ".a.${${PROJECT_NAME}_VERSION}")
+endif()
+
+if(ZMQ_FOUND)
+    target_compile_definitions(${BEHAVIOR_TREE_LIBRARY} PUBLIC ZMQ_FOUND)
 endif()
 
 ######################################################
