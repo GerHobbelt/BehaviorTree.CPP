@@ -273,7 +273,8 @@ void XMLParser::Pimpl::verifyXML(const XMLDocument* doc) const
             }
         }
         else if (StrEqual(name, "Sequence") || StrEqual(name, "SequenceStar") ||
-                 StrEqual(name, "Fallback") || StrEqual(name, "FallbackStar"))
+                 StrEqual(name, "Fallback") || StrEqual(name, "FallbackStar") ||
+                 StrEqual(name, "Parallel"))
         {
             if (children_count == 0)
             {

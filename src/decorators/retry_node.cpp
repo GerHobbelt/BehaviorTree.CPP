@@ -84,7 +84,7 @@ NodeStatus RetryNode::tick()
 
         default:
         {
-            // TODO throw?
+            throw std::runtime_error { "RetryNode: child returned status IDLE" };
         }
     }
 
