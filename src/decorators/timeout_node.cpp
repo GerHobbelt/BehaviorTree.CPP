@@ -77,4 +77,6 @@ NodeStatus TimeoutNode::tick()
     return status();
 }
 
+void TimeoutNode::halt() {}
+
 }
