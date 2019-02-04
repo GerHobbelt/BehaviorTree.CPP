@@ -50,7 +50,7 @@ NodeStatus TimeoutNode::tick()
 
         if (msec_ > 0)
         {
-            timer_id_ = timer().add(std::chrono::milliseconds(msec_), [this](bool aborted) {
+            timer().add(std::chrono::milliseconds(msec_), [this](bool aborted) {
                 if (!aborted && child()->status() == NodeStatus::RUNNING)
                 {
                     child()->halt();
@@ -69,7 +69,7 @@ NodeStatus TimeoutNode::tick()
         auto child_status = child()->executeTick();
         if (child_status != NodeStatus::RUNNING)
         {
-            timer().cancel(timer_id_);
+            timer().cancelAll();
         }
         setStatus(child_status);
     }
@@ -77,6 +77,10 @@ NodeStatus TimeoutNode::tick()
     return status();
 }
 
-void TimeoutNode::halt() {}
+void TimeoutNode::halt()
+{
+    timer().cancelAll();
+    DecoratorNode::halt();
+}
 
 }
