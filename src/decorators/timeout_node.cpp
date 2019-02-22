@@ -74,6 +74,7 @@ NodeStatus TimeoutNode::tick()
         setStatus(child_status);
     }
 
+    if(status() == NodeStatus::IDLE) { setStatus(NodeStatus::FAILURE); }
     return status();
 }
 
