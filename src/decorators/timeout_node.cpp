@@ -14,14 +14,14 @@
 namespace BT
 {
 TimeoutNode::TimeoutNode(const std::string& name, unsigned milliseconds)
-  : DecoratorNode(name, {}), child_halted_(false), msec_(milliseconds),
+  : DecoratorNode(name, {}), timeout_reached_(false), msec_(milliseconds),
     read_parameter_from_blackboard_(false)
 {
     setRegistrationName("Timeout");
 }
 
 TimeoutNode::TimeoutNode(const std::string& name, const BT::NodeParameters& params)
-  : DecoratorNode(name, params), child_halted_(false), msec_(0)
+  : DecoratorNode(name, params), timeout_reached_(false), msec_(0)
 {
     read_parameter_from_blackboard_ = isBlackboardPattern( params.at("msec") );
     if(!read_parameter_from_blackboard_)
@@ -46,35 +46,33 @@ NodeStatus TimeoutNode::tick()
     if (status() == NodeStatus::IDLE)
     {
         setStatus(NodeStatus::RUNNING);
-        child_halted_ = false;
+        timeout_reached_ = false;
 
         if (msec_ > 0)
         {
             timer().add(std::chrono::milliseconds(msec_), [this](bool aborted) {
                 if (!aborted && child()->status() == NodeStatus::RUNNING)
                 {
-                    child()->halt();
-                    child_halted_ = true;
+                    timeout_reached_ = true;
                 }
             });
         }
     }
 
-    if (child_halted_)
+    const auto child_status = child()->executeTick();
+    if(timeout_reached_)
     {
+        child()->halt();
         setStatus(NodeStatus::FAILURE);
-    }
-    else
-    {
-        auto child_status = child()->executeTick();
-        if (child_status != NodeStatus::RUNNING)
-        {
-            timer().cancelAll();
-        }
-        setStatus(child_status);
+        return status();
     }
 
-    if(status() == NodeStatus::IDLE) { setStatus(NodeStatus::FAILURE); }
+    if (child_status != NodeStatus::RUNNING)
+    {
+        timer().cancelAll();
+    }
+
+    setStatus(child_status);
     return status();
 }
 
