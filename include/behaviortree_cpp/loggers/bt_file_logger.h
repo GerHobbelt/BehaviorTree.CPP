@@ -11,7 +11,7 @@ namespace BT
 class FileLogger : public StatusChangeLogger
 {
   public:
-    FileLogger(TreeNode* root_node, const char* filename, uint16_t buffer_size = 10);
+    FileLogger(const Tree &tree, const char* filename, uint16_t buffer_size = 10);
 
     virtual ~FileLogger() override;
 
@@ -27,7 +27,7 @@ class FileLogger : public StatusChangeLogger
 
     std::vector<SerializedTransition> buffer_;
 
-    bool buffer_max_size_;
+    size_t buffer_max_size_;
 };
 
 }   // end namespace

@@ -1,10 +1,10 @@
 #include "behaviortree_cpp/loggers/bt_file_logger.h"
-#include "behaviortree_cpp/loggers/bt_flatbuffer_helper.h"
+#include "behaviortree_cpp/flatbuffers/bt_flatbuffer_helper.h"
 
 namespace BT
 {
-FileLogger::FileLogger(BT::TreeNode* root_node, const char* filename, uint16_t buffer_size)
-  : StatusChangeLogger(root_node), buffer_max_size_(buffer_size)
+FileLogger::FileLogger(const BT::Tree& tree, const char* filename, uint16_t buffer_size)
+  : StatusChangeLogger(tree.root_node), buffer_max_size_(buffer_size)
 {
     if (buffer_max_size_ != 0)
     {
@@ -14,7 +14,7 @@ FileLogger::FileLogger(BT::TreeNode* root_node, const char* filename, uint16_t b
     enableTransitionToIdle(true);
 
     flatbuffers::FlatBufferBuilder builder(1024);
-    CreateFlatbuffersBehaviorTree(builder, root_node);
+    CreateFlatbuffersBehaviorTree(builder, tree);
 
     //-------------------------------------
 

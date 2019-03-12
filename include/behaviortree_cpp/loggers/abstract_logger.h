@@ -2,6 +2,7 @@
 #define ABSTRACT_LOGGER_H
 
 #include "behaviortree_cpp/behavior_tree.h"
+#include "behaviortree_cpp/bt_factory.h"
 
 namespace BT
 {
@@ -12,7 +13,6 @@ enum class TimestampType
 };
 
 typedef std::array<uint8_t, 12> SerializedTransition;
-
 
 class StatusChangeLogger
 {
