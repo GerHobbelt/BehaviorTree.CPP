@@ -42,7 +42,6 @@ endif()
 
 set(BEHAVIOR_TREE_LIBRARY ${PROJECT_NAME})
 
-
 # Update the policy setting to avoid an error when loading the ament_cmake package
 # at the current cmake version level
 if(POLICY CMP0057)
@@ -101,7 +100,7 @@ else()
 
 endif()
 if(NOT MSVC)
-    list(APPEND BEHAVIOR_TREE_EXTERNAL_LIBRARIES "dw")
+    #list(APPEND BEHAVIOR_TREE_EXTERNAL_LIBRARIES "dw")
 endif()
 
 #############################################################
@@ -282,4 +281,7 @@ if( BUILD_EXAMPLES )
     add_subdirectory(examples)
 endif()
 
+if( ZMQ_FOUND )
+    target_compile_definitions(${BEHAVIOR_TREE_LIBRARY} PUBLIC ZMQ_FOUND)
+endif()
 

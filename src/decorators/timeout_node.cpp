@@ -89,4 +89,10 @@ NodeStatus TimeoutNode::tick()
     }
 }
 
+void TimeoutNode::halt()
+{
+    timer_.cancelAll();
+    DecoratorNode::halt();
+}
+
 }

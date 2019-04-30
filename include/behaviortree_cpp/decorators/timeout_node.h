@@ -44,7 +44,7 @@ class TimeoutNode : public DecoratorNode
     virtual BT::NodeStatus tick() override;
     virtual void halt() override;
 
-    std::atomic<bool> timeout_reached_;
+    std::atomic<bool> child_halted_;
     uint64_t timer_id_;
 
     unsigned msec_;
