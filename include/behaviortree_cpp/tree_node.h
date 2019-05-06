@@ -200,7 +200,17 @@ inline Result TreeNode::getInput(const std::string& key, T& destination) const
             destination = convertFromString<T>(remap_it->second);
             return {};
         }
-        const auto& remapped_key = remapped_res.value();
+        auto& remapped_key = remapped_res.value();
+        size_t indirection_levels {};
+        while( isBlackboardPointer(remapped_key) ) {
+            indirection_levels++;
+            remapped_key = stripBlackboardPointer(remapped_key);
+        }
+        std::string remapped_key_string = remapped_key.to_string();
+        for (size_t i=0; i<indirection_levels; i++) {
+            auto inner_val = config_.blackboard->getAny(remapped_key_string);
+            remapped_key_string = inner_val->cast<std::string>();
+        }
 
         if (!config_.blackboard)
         {
@@ -208,7 +218,7 @@ inline Result TreeNode::getInput(const std::string& key, T& destination) const
                                            "but BB is invalid");
         }
 
-        const Any* val = config_.blackboard->getAny(remapped_key.to_string());
+        const Any* val = config_.blackboard->getAny(remapped_key_string);
         if (val && val->empty() == false)
         {
             if (std::is_same<T, std::string>::value == false && val->type() == typeid(std::string))

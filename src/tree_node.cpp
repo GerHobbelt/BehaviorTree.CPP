@@ -103,13 +103,16 @@ const NodeConfiguration &TreeNode::config() const
 
 bool TreeNode::isBlackboardPointer(StringView str)
 {
-    const auto size = str.size();
-    if( size >= 3 && str.back() == '}')
+    auto size = str.size();
+    if( size >= 3)
     {
-        if( str[0] == '{') {
+        while ( str.starts_with(' ') ) {str = str.substr(1, size-1); size = str.size();}
+        while ( str.ends_with(' ') ) {str = str.substr(0, size-1); size = str.size();}
+
+        if( str[0] == '{' && str.back() == '}') {
             return true;
         }
-        if( size >= 4 && str[0] == '$' && str[1] == '{') {
+        if( size >= 4 && str[0] == '$' && str[1] == '{' && str.back() == '}') {
             return true;
         }
     }
@@ -118,13 +121,16 @@ bool TreeNode::isBlackboardPointer(StringView str)
 
 StringView TreeNode::stripBlackboardPointer(StringView str)
 {
-    const auto size = str.size();
-    if( size >= 3 && str.back() == '}')
+    auto size = str.size();
+    if( size >= 3 )
     {
-        if( str[0] == '{') {
+        while ( str.starts_with(' ') ) {str = str.substr(1, size-1); size = str.size();}
+        while ( str.ends_with(' ') ) {str = str.substr(0, size-1); size = str.size();}
+
+        if( str[0] == '{' && str.back() == '}') {
             return str.substr(1, size-2);
         }
-        if( str[0] == '$' && str[1] == '{') {
+        if( str[0] == '$' && str[1] == '{' && str.back() == '}') {
             return str.substr(2, size-3);
         }
     }
