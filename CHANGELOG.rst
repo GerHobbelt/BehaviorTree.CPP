@@ -2,6 +2,23 @@
 Changelog for package behaviortree_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.7 (2019-04-02)
+------------------
+* this should fix issue with tinyXML2 once and for all (maybe...)
+* improvement #79
+* doc fix
+* Deprecating <remap> tag in SubTree
+* fix windows compilation
+* Update README.md
+* back to c++11
+* Contributors: Davide Faconti, Ferran Roure
+
+3.0.4 (2019-03-19)
+------------------
+* fix issue #72 with sibling subtrees
+* Update .travis.yml
+* Contributors: Davide Faconti
+
 3.0.3 (2019-03-12)
 ------------------
 * moving to C++14... deal with it
