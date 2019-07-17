@@ -153,6 +153,13 @@ std::vector<double> convertFromString<std::vector<double>>(StringView str)
 }
 
 template <>
+std::vector<std::string> convertFromString<std::vector<std::string>>(StringView str)
+{
+    auto parts = splitString(str, ';');
+    return { parts.begin(), parts.end() };
+}
+
+template <>
 bool convertFromString<bool>(StringView str)
 {
     if (str.size() == 1)
