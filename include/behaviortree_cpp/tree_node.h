@@ -221,14 +221,21 @@ inline Result TreeNode::getInput(const std::string& key, T& destination) const
         const Any* val = config_.blackboard->getAny(remapped_key_string);
         if (val && val->empty() == false)
         {
+            //TODO: should this be done inside the blackboard?
             if (std::is_same<T, std::string>::value == false && val->type() == typeid(std::string))
             {
                 destination = convertFromString<T>(val->cast<std::string>());
             }
-            else
+            else if(typeid(T) == val->type())
             {
                 destination = val->cast<T>();
             }
+            else if(config_.blackboard->types_converter_.value().isConvertible<T>(val->type()))
+            {
+                std::cout << "Converted from type using user functions." << std::endl;
+                destination = config_.blackboard->types_converter_.value().convert<T>(val);
+            }
+            
             return {};
         }
 

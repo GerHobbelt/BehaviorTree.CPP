@@ -167,6 +167,11 @@ const std::set<std::string> &BehaviorTreeFactory::builtinNodes() const
     return builtin_IDs_;
 }
 
+const TypesConverter& BehaviorTreeFactory::typesConverter() const
+{
+    return types_converter_;
+}
+
 Tree BehaviorTreeFactory::createTreeFromText(const std::string &text,
                                              Blackboard::Ptr blackboard)
 {

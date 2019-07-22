@@ -11,6 +11,7 @@
 
 #include "behaviortree_cpp/basic_types.h"
 #include "behaviortree_cpp/utils/safe_any.hpp"
+#include "behaviortree_cpp/utils/types_converter.hpp"
 #include "behaviortree_cpp/exceptions.h"
 
 namespace BT
@@ -161,6 +162,11 @@ class Blackboard
                         temp = std::move( any_from_string );
                     }
                 }
+                else if(types_converter_ && types_converter_.value().isConvertible(typeid(T), *locked_type))
+                {
+                    std::cout << "Blacboard::set() detected convertible types" << std::endl;
+                    mismatching = false;
+                }
 
                 if( mismatching )
                 {
@@ -181,11 +187,16 @@ class Blackboard
 
     void setPortInfo(std::string key, const PortInfo& info);
 
+    void setTypesConverter(const TypesConverter& types_converter);
+
     const PortInfo *portInfo(const std::string& key);
 
     void addSubtreeRemapping(std::string internal, std::string external);
 
     void debugMessage() const;
+
+    //TODO: should this be an unique global reference for all the trees?
+    Optional<TypesConverter> types_converter_;
 
   private:
 
@@ -207,7 +218,6 @@ class Blackboard
     std::unordered_map<std::string, Entry> storage_;
     std::weak_ptr<Blackboard> parent_bb_;
     std::unordered_map<std::string,std::string> internal_to_external_;
-
 };
 
 

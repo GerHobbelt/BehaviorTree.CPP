@@ -24,7 +24,7 @@ void Blackboard::setPortInfo(std::string key, const PortInfo& info)
         auto old_type = it->second.port_info.type();
         if( old_type && old_type != info.type() )
         {
-            throw LogicError( "Blackboard::set() failed: once declared, the type of a port shall not change. "
+            throw LogicError( " This happened Blackboard::set() failed: once declared, the type of a port shall not change. "
                              "Declared type [",     BT::demangle( old_type ),
                              "] != current type [", BT::demangle( info.type() ), "]" );
         }
@@ -45,6 +45,11 @@ const PortInfo* Blackboard::portInfo(const std::string &key)
 void Blackboard::addSubtreeRemapping(std::string internal, std::string external)
 {
     internal_to_external_.insert( {std::move(internal), std::move(external)} );
+}
+
+void Blackboard::setTypesConverter(const TypesConverter& types_converter)
+{
+    types_converter_ = types_converter;
 }
 
 void Blackboard::debugMessage() const

@@ -22,8 +22,8 @@
 #include <algorithm>
 #include <set>
 
-
 #include "behaviortree_cpp/behavior_tree.h"
+#include "behaviortree_cpp/utils/types_converter.hpp"
 
 namespace BT
 {
@@ -216,6 +216,9 @@ public:
     /// List of builtin IDs.
     const std::set<std::string>& builtinNodes() const;
 
+    /// Type converter funtions
+    const TypesConverter& typesConverter() const;
+
     Tree createTreeFromText(const std::string& text,
                             Blackboard::Ptr blackboard = Blackboard::create());
 
@@ -228,10 +231,19 @@ public:
         return { getType<T>(), ID, getProvidedPorts<T>() };
     }
 
+    template <class From, class To>
+    void registerTypeConverter(const std::string& name, const ConverterFunction<From, To>& converter)
+    {
+        std::cout << "Registering conversion between types " << demangle(typeid(From)) << " to " << demangle(typeid(To)) << std::endl;
+        types_converter_.addConversion(converter);
+    }
+
 private:
     std::unordered_map<std::string, NodeBuilder> builders_;
     std::unordered_map<std::string, TreeNodeManifest> manifests_;
     std::set<std::string> builtin_IDs_;
+
+    TypesConverter types_converter_;
 
     // template specialization = SFINAE + black magic
 

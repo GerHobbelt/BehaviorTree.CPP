@@ -435,6 +435,14 @@ Tree XMLParser::instantiateTree(const Blackboard::Ptr& root_blackboard)
     {
         output_tree.root_node = output_tree.nodes.front().get();
     }
+
+    //Set type converter for all blackboards
+    //TODO: should this be a single global reference for all the blackboards in the tree?
+    for(const auto& blackboard : output_tree.blackboard_stack)
+    {
+        blackboard->setTypesConverter(_p->factory.typesConverter());
+    }
+    
     return output_tree;
 }
 
@@ -533,12 +541,32 @@ TreeNode::Ptr XMLParser::Pimpl::createNodeFromXML(const XMLElement *element,
                     if( prev_info->type() && port_info.type()  && // null type means that everything is valid
                         prev_info->type()!= port_info.type())
                     {
-                        blackboard->debugMessage();
+                        //TODO: handle INOUT ports and comparisons with the same direction
+                        bool is_convertible = false;
+                        if(prev_info->direction() == PortDirection::OUTPUT)
+                        {
+                            is_convertible = factory.typesConverter().isConvertible(*prev_info->type(), *port_info.type());
+                        }
+                        else
+                        {
+                            is_convertible = factory.typesConverter().isConvertible(*port_info.type(), *prev_info->type());
+                        }
 
-                        throw RuntimeError( "The creation of the tree failed because the port [", port_key,
-                                           "] was initially created with type [", demangle( prev_info->type() ),
-                                           "] and, later type [", demangle( port_info.type() ),
-                                           "] was used somewhere else." );
+                        if(!is_convertible)
+                        {
+                            blackboard->debugMessage();
+                            throw RuntimeError( "The creation of the tree failed because the port [", port_key,
+                                               "] was initially created with type [", demangle( prev_info->type() ),
+                                               "] and, later type [", demangle( port_info.type() ),
+                                               "] was used somewhere else." );
+                        }
+                        else
+                        {
+                            std::cout << "Found type inconsistency on port [" << port_key <<
+                                               "] with type [" << demangle( prev_info->type() ) <<
+                                               "] and, later type [" <<  demangle( port_info.type() ) <<
+                                               "], but a custom conversion function has been provided." << std::endl;
+                        }
                     }
                 }
             }
