@@ -200,14 +200,19 @@ inline Result TreeNode::getInput(const std::string& key, T& destination) const
             destination = convertFromString<T>(remap_it->second);
             return {};
         }
+
         auto& remapped_key = remapped_res.value();
         size_t indirection_levels {};
-        while( isBlackboardPointer(remapped_key) ) {
+        while( isBlackboardPointer(remapped_key) )
+        {
             indirection_levels++;
             remapped_key = stripBlackboardPointer(remapped_key);
         }
+
         std::string remapped_key_string = remapped_key.to_string();
-        for (size_t i=0; i<indirection_levels; i++) {
+
+        for (size_t i=0; i < indirection_levels; i++)
+        {
             auto inner_val = config_.blackboard->getAny(remapped_key_string);
             remapped_key_string = inner_val->cast<std::string>();
         }
@@ -218,15 +223,15 @@ inline Result TreeNode::getInput(const std::string& key, T& destination) const
                                            "but BB is invalid");
         }
 
+        //TODO: All this checks should be done in the blackboard
         const Any* val = config_.blackboard->getAny(remapped_key_string);
         if (val && val->empty() == false)
         {
-            //TODO: should this be done inside the blackboard?
             if (std::is_same<T, std::string>::value == false && val->type() == typeid(std::string))
             {
                 destination = convertFromString<T>(val->cast<std::string>());
             }
-            else if(typeid(T) == val->type())
+            else if(typeid(T) == val->type() || (std::is_arithmetic<T>::value && val->isNumber()))
             {
                 destination = val->cast<T>();
             }

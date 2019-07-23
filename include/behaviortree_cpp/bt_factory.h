@@ -239,6 +239,10 @@ public:
     }
 
 private:
+    void registerDefaultNodes();
+    void registerDefaultTypesConversions();
+
+private:
     std::unordered_map<std::string, NodeBuilder> builders_;
     std::unordered_map<std::string, TreeNodeManifest> manifests_;
     std::set<std::string> builtin_IDs_;

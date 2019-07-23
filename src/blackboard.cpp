@@ -4,6 +4,8 @@ namespace BT{
 
 void Blackboard::setPortInfo(std::string key, const PortInfo& info)
 {
+    std::cout << "Blackboard setPortInfo. Key: " << key << std::endl;
+
     std::unique_lock<std::mutex> lock(mutex_);
 
     if( auto parent = parent_bb_.lock())
@@ -29,6 +31,40 @@ void Blackboard::setPortInfo(std::string key, const PortInfo& info)
                              "] != current type [", BT::demangle( info.type() ), "]" );
         }
     }
+}
+
+void Blackboard::addPortType(std::string key, const std::type_info* info)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    if( auto parent = parent_bb_.lock())
+    {
+        auto remapping_it = internal_to_external_.find(key);
+        if( remapping_it != internal_to_external_.end())
+        {
+            parent->addPortType( remapping_it->second, info );
+        }
+    }
+
+    auto it = storage_.find(key);
+    if( it == storage_.end() )
+    {
+        storage_.insert( { std::move(key), Entry(*info) } );
+    }
+
+    //TODO: check if all types are convertible between them
+    /*
+    else
+    {
+        auto old_type = it->second.port_info.type();
+        if( old_type && old_type != info.type() )
+        {
+            throw LogicError( " This happened Blackboard::set() failed: once declared, the type of a port shall not change. "
+                             "Declared type [",     BT::demangle( old_type ),
+                             "] != current type [", BT::demangle( info.type() ), "]" );
+        }
+    }
+    */
 }
 
 const PortInfo* Blackboard::portInfo(const std::string &key)
@@ -73,8 +109,28 @@ void Blackboard::debugMessage() const
                 continue;
             }
         }
+
         std::cout << ((entry_it.second.value.empty()) ? "empty" : "full") <<  std::endl;
     }
 }
 
+// Private
+bool Blackboard::areEntryTypesCompatible(const Entry& _entry)
+{
+    const Entry::Types& input_types = _entry.input_types();
+
+    for(const std::type_index& output_type : _entry.output_types())
+    {
+        if(!std::all_of(input_types.cbegin(), input_types.cend(),
+                    [&output_type] (const std::type_index& _input_type)
+                    { return types_converter_.value().isConvertible(output_type, _input_type) }))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+}
 }

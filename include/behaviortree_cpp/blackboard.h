@@ -144,12 +144,14 @@ class Blackboard
 
         if( it != storage_.end() ) // already there. check the type
         {
+            it->second.value = Any(value);
+            /*
             const PortInfo& port_info = it->second.port_info;
             auto& previous_any = it->second.value;
             const auto locked_type = port_info.type();
 
+            //NOTE: type checks disabled on set
             Any temp(value);
-
             if( locked_type && locked_type != &typeid(T) && locked_type != &temp.type() )
             {
                 bool mismatching = true;
@@ -167,25 +169,40 @@ class Blackboard
                     std::cout << "Blacboard::set() detected convertible types" << std::endl;
                     mismatching = false;
                 }
+                else if(temp.isNumber() && previous_any.isNumber())
+                {
+                    std::cout << "Temp with type " << demangle(temp.type()) << " is number " << temp.isNumber() << std::endl;
+                    std::cout << "Previous with type " << demangle(previous_any.type()) << " is number " << temp.isNumber() << std::endl;
+                    std::cout << "--------------" << std::endl;
+                    mismatching = false;
+                }
 
                 if( mismatching )
                 {
                     debugMessage();
 
-                    throw LogicError( "Blackboard::set() failed: once declared, the type of a port shall not change. "
+                    std::cout << "MISMATCH Temp with type " << demangle(temp.type()) << " is number " << temp.isNumber() << std::endl;
+                    std::cout << "MISMATCH Previous with type " << demangle(previous_any.type()) << " is number " << previous_any.isNumber() << std::endl;
+                    std::cout << "--------------" << std::endl;
+
+                    throw LogicError( "Blackboard.h Blackboard::set() failed: once declared, the type of a port shall not change. "
                                      "Declared type [", demangle( locked_type ),
                                      "] != current type [", demangle( typeid(T) ),"]" );
                 }
             }
             previous_any = std::move(temp);
+            */
         }
-        else{ // create for the first time without any info
+        else
+        {
+            // create for the first time without any info
             storage_.emplace( key, Entry( Any(value), PortInfo() ) );
         }
         return;
     }
 
     void setPortInfo(std::string key, const PortInfo& info);
+    void addPortType(std::string key, const std::type_info* type);
 
     void setTypesConverter(const TypesConverter& types_converter);
 
@@ -199,19 +216,53 @@ class Blackboard
     Optional<TypesConverter> types_converter_;
 
   private:
+    bool areEntryTypesCompatible(const Entry& _entry);
 
-    struct Entry{
-        Any value;
-        const PortInfo port_info;
+  private:
+    struct Entry
+    {
+        public:
+            using Types = std::set<std::type_index>;
 
-        Entry( const PortInfo& info ):
-          port_info(info)
-        {}
+        public:
+            Entry( const PortInfo& _port_info)
+            {
+                AddPortType(_port_info);
+            }
 
-        Entry(Any&& other_any, const PortInfo& info):
-          value(std::move(other_any)),
-          port_info(info)
-        {}
+            Entry(Any&& other_any, const PortInfo& _port_info):
+              value (std::move(other_any))
+            {
+                AddPortType(_port_info);
+            }
+
+            Any& value() { return value_; }
+            const Types& input_types  const { return input_types_;  }
+            const Types& output_types const { return output_types_; }
+
+            void addPortType(const PortInfo& _port_info)
+            {
+                std::type_index port_type = *_port_info.type();
+
+                switch(_port_info.direction())
+                {
+                    case PortInfo::INPUT:
+                        input_types.insert(port_type);
+                        break;
+                    case PortInfo::OUTPUT:
+                        output_types.insert(port_type);
+                        break;
+                    case PortInfo::INOUT:
+                        input_types.insert(port_type);
+                        output_types.insert(port_type);
+                        break;
+                }
+            }
+
+        private:
+            Any value_;
+            Types input_types_;
+            Types output_types_;
     };
 
     mutable std::mutex mutex_;
@@ -219,7 +270,6 @@ class Blackboard
     std::weak_ptr<Blackboard> parent_bb_;
     std::unordered_map<std::string,std::string> internal_to_external_;
 };
-
 
 } // end namespace
 

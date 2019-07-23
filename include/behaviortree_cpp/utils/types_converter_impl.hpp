@@ -54,6 +54,14 @@ namespace BT
         return isConvertible(from_type, typeid(To));
     }
 
+    inline bool TypesConverter::isConvertible(const std::type_info& from_type, const std::type_info& to_type) const
+    {
+        if(from_type == to_type) { return true; }
+
+        const TypeKey& type_key = getTypeKey(from_type, to_type);
+        return converters_.find(type_key) != converters_.cend();
+    }
+
     template<class From, class To>
     TypesConverter::TypeKey TypesConverter::getTypeKey() const
     {
@@ -64,13 +72,6 @@ namespace BT
     TypesConverter::TypeKey TypesConverter::getTypeKey(const std::type_info& from_type) const
     {
         return getTypeKey(from_type, typeid(To));
-    }
-
-    inline bool TypesConverter::isConvertible(const std::type_info& from_type, const std::type_info& to_type) const
-    {
-        const TypeKey& type_key = getTypeKey(from_type, to_type);
-
-        return converters_.find(type_key) != converters_.cend();
     }
 
     inline TypesConverter::TypeKey TypesConverter::getTypeKey(const std::type_info& from_type, const std::type_info& to_type) const

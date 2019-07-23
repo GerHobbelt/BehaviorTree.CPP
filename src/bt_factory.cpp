@@ -18,35 +18,8 @@ namespace BT
 {
 BehaviorTreeFactory::BehaviorTreeFactory()
 {
-    registerNodeType<FallbackNode>("Fallback");
-    registerNodeType<SequenceNode>("Sequence");
-    registerNodeType<SequenceStarNode>("SequenceStar");
-    registerNodeType<ParallelNode>("Parallel");
-    registerNodeType<ReactiveSequence>("ReactiveSequence");
-    registerNodeType<ReactiveFallback>("ReactiveFallback");
-
-    registerNodeType<InverterNode>("Inverter");
-    registerNodeType<RetryNode>("RetryUntilSuccesful");
-    registerNodeType<RepeatNode>("Repeat");
-    registerNodeType<TimeoutNode>("Timeout");
-
-    registerNodeType<ForceSuccessNode>("ForceSuccess");
-    registerNodeType<ForceFailureNode>("ForceFailure");
-
-    registerNodeType<AlwaysSuccessNode>("AlwaysSuccess");
-    registerNodeType<AlwaysFailureNode>("AlwaysFailure");
-    registerNodeType<SetBlackboard>("SetBlackboard");
-
-    registerNodeType<DecoratorSubtreeNode>("SubTree");
-
-    registerNodeType<BlackboardPreconditionNode<int>>("BlackboardCheckInt");
-    registerNodeType<BlackboardPreconditionNode<double>>("BlackboardCheckDouble");
-    registerNodeType<BlackboardPreconditionNode<std::string>>("BlackboardCheckString");
-
-    for( const auto& it: builders_)
-    {
-        builtin_IDs_.insert( it.first );
-    }
+    registerDefaultNodes();
+    registerDefaultTypesConversions();
 }
 
 bool BehaviorTreeFactory::unregisterBuilder(const std::string& ID)
@@ -182,6 +155,48 @@ Tree BehaviorTreeFactory::createTreeFromText(const std::string &text,
     return tree;
 }
 
+void BehaviorTreeFactory::registerDefaultNodes()
+{
+    registerNodeType<FallbackNode>("Fallback");
+    registerNodeType<SequenceNode>("Sequence");
+    registerNodeType<SequenceStarNode>("SequenceStar");
+    registerNodeType<ParallelNode>("Parallel");
+    registerNodeType<ReactiveSequence>("ReactiveSequence");
+    registerNodeType<ReactiveFallback>("ReactiveFallback");
+
+    registerNodeType<InverterNode>("Inverter");
+    registerNodeType<RetryNode>("RetryUntilSuccesful");
+    registerNodeType<RepeatNode>("Repeat");
+    registerNodeType<TimeoutNode>("Timeout");
+
+    registerNodeType<ForceSuccessNode>("ForceSuccess");
+    registerNodeType<ForceFailureNode>("ForceFailure");
+
+    registerNodeType<AlwaysSuccessNode>("AlwaysSuccess");
+    registerNodeType<AlwaysFailureNode>("AlwaysFailure");
+    registerNodeType<SetBlackboard>("SetBlackboard");
+
+    registerNodeType<DecoratorSubtreeNode>("SubTree");
+
+    registerNodeType<BlackboardPreconditionNode<int>>("BlackboardCheckInt");
+    registerNodeType<BlackboardPreconditionNode<double>>("BlackboardCheckDouble");
+    registerNodeType<BlackboardPreconditionNode<std::string>>("BlackboardCheckString");
+
+    for( const auto& it: builders_)
+    {
+        builtin_IDs_.insert( it.first );
+    }
+}
+
+void BehaviorTreeFactory::registerDefaultTypesConversions()
+{
+    /*
+    registerTypeConverter<int64_t,  std::string>("Test");
+    registerTypeConverter<uint64_t, std::string>("Test");
+    registerTypeConverter<double,   std::string>("Test");
+    */
+}
+
 Tree BehaviorTreeFactory::createTreeFromFile(const std::string &file_path,
                                              Blackboard::Ptr blackboard)
 {
@@ -207,6 +222,5 @@ Blackboard::Ptr Tree::rootBlackboard()
     }
     return {};
 }
-
 
 }   // end namespace

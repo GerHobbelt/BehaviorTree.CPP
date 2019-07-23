@@ -219,17 +219,6 @@ public:
 
     const std::type_info* type() const;
 
-    Any parseString(const char *str) const;
-
-    Any parseString(const std::string& str) const;
-
-    template <typename T>
-    Any parseString(const T& ) const
-    {
-        // avoid compilation errors
-        return {};
-    }
-
     void setDescription(StringView description);
 
     void setDefaultValue(StringView default_value_as_string);

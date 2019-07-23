@@ -500,6 +500,8 @@ TreeNode::Ptr XMLParser::Pimpl::createNodeFromXML(const XMLElement *element,
 
     if( factory.builders().count(ID) != 0)
     {
+        std::cout << "MANIFEST INFO FOR NODE " << ID << std::endl;
+
         const auto& manifest = factory.manifests().at(ID);
 
         //Check that name in remapping can be found in the manifest
@@ -519,6 +521,8 @@ TreeNode::Ptr XMLParser::Pimpl::createNodeFromXML(const XMLElement *element,
             const std::string& port_name = port_it.first;
             const auto& port_info = port_it.second;
 
+            std::cout << "PORT NAME " << port_name << " direction " << port_info.direction() << std::endl;
+
             auto remap_it = remapping_parameters.find(port_name);
             if( remap_it == remapping_parameters.end())
             {
@@ -526,14 +530,19 @@ TreeNode::Ptr XMLParser::Pimpl::createNodeFromXML(const XMLElement *element,
             }
             StringView remapping_value = remap_it->second;
             auto remapped_res = TreeNode::getRemappedKey(port_name, remapping_value);
+
             if( remapped_res )
             {
                 const auto& port_key = remapped_res.value().to_string();
+
+                std::cout << "PORT KEY (from remapped_res)" << port_key << std::endl;
 
                 auto prev_info = blackboard->portInfo( port_key );
                 if( !prev_info  )
                 {
                     // not found, insert for the first time.
+                    std::cout << "INSERTING PORT INFO PORT NAME " << port_key << " WITH DIRECTION "<< port_info.direction()
+                        << " AND TYPE " << demangle(port_info.type()) << std::endl;
                     blackboard->setPortInfo( port_key, port_info );
                 }
                 else{
@@ -541,16 +550,12 @@ TreeNode::Ptr XMLParser::Pimpl::createNodeFromXML(const XMLElement *element,
                     if( prev_info->type() && port_info.type()  && // null type means that everything is valid
                         prev_info->type()!= port_info.type())
                     {
+                        std::cout << "CHECKING PORT "               << port_key << " with type " << demangle(port_info.type()) << std::endl;
+                        std::cout << "PREV PORT INFO DIRECTION "    << prev_info->direction() << std::endl;
+                        std::cout << "CURRENT PORT INFO DIRECTION " << port_info.direction() << std::endl;
+
                         //TODO: handle INOUT ports and comparisons with the same direction
-                        bool is_convertible = false;
-                        if(prev_info->direction() == PortDirection::OUTPUT)
-                        {
-                            is_convertible = factory.typesConverter().isConvertible(*prev_info->type(), *port_info.type());
-                        }
-                        else
-                        {
-                            is_convertible = factory.typesConverter().isConvertible(*port_info.type(), *prev_info->type());
-                        }
+                        bool is_convertible = factory.typesConverter().isConvertible(*prev_info->type(), *port_info.type());
 
                         if(!is_convertible)
                         {
@@ -571,6 +576,8 @@ TreeNode::Ptr XMLParser::Pimpl::createNodeFromXML(const XMLElement *element,
                 }
             }
         }
+
+        std::cout << "--------------" << std::endl;
 
         // use manifest to initialize NodeConfiguration
         for(const auto& remap_it: remapping_parameters)
