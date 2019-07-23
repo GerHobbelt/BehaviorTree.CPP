@@ -133,7 +133,8 @@ class Blackboard
                     {
                         storage_.insert( {key, Entry( *parent_info ) } );
                     }
-                    else{
+                    else
+                    {
                         storage_.insert( {key, Entry( PortInfo() ) } );
                     }
                 }
@@ -142,9 +143,52 @@ class Blackboard
             }
         }
 
-        if( it != storage_.end() ) // already there. check the type
+        // Update it or create it for the first time 
+        if( it != storage_.end() )
         {
             it->second.value = Any(value);
+        }
+        else
+        {
+            storage_.emplace( key, Entry( Any(value), PortDirection::OUTPUT ) );
+        }
+
+        if(!areEntryTypesCompatible(*it))
+        {
+             throw LogicError( "Blackboard.h Blackboard::set() failed: once declared, the type of a port shall not change. "
+                             "Declared type [", demangle( locked_type ),
+                             "] != current type [", demangle( typeid(T) ),"]" );
+        }
+    }
+
+    void setPortInfo(std::string key, const PortInfo& info);
+    void addPortType(std::string key, const std::type_info* type);
+
+    void setTypesConverter(const TypesConverter& types_converter);
+
+    const PortInfo *portInfo(const std::string& key);
+
+    void addSubtreeRemapping(std::string internal, std::string external);
+
+    void debugMessage() const;
+
+  private:
+    bool areEntryTypesCompatible(const Entry& _entry);
+
+  private:
+    mutable std::mutex mutex_;
+    std::unordered_map<std::string, details::Entry> storage_;
+    std::weak_ptr<Blackboard> parent_bb_;
+    std::unordered_map<std::string,std::string> internal_to_external_;
+
+    //TODO: should this be an unique global reference for all the trees?
+    const TypesConverter types_converter_;
+};
+
+} // end namespace
+
+#endif   // BLACKBOARD_H
+
             /*
             const PortInfo& port_info = it->second.port_info;
             auto& previous_any = it->second.value;
@@ -185,92 +229,7 @@ class Blackboard
                     std::cout << "MISMATCH Previous with type " << demangle(previous_any.type()) << " is number " << previous_any.isNumber() << std::endl;
                     std::cout << "--------------" << std::endl;
 
-                    throw LogicError( "Blackboard.h Blackboard::set() failed: once declared, the type of a port shall not change. "
-                                     "Declared type [", demangle( locked_type ),
-                                     "] != current type [", demangle( typeid(T) ),"]" );
-                }
+               }
             }
             previous_any = std::move(temp);
             */
-        }
-        else
-        {
-            // create for the first time without any info
-            storage_.emplace( key, Entry( Any(value), PortInfo() ) );
-        }
-        return;
-    }
-
-    void setPortInfo(std::string key, const PortInfo& info);
-    void addPortType(std::string key, const std::type_info* type);
-
-    void setTypesConverter(const TypesConverter& types_converter);
-
-    const PortInfo *portInfo(const std::string& key);
-
-    void addSubtreeRemapping(std::string internal, std::string external);
-
-    void debugMessage() const;
-
-    //TODO: should this be an unique global reference for all the trees?
-    Optional<TypesConverter> types_converter_;
-
-  private:
-    bool areEntryTypesCompatible(const Entry& _entry);
-
-  private:
-    struct Entry
-    {
-        public:
-            using Types = std::set<std::type_index>;
-
-        public:
-            Entry( const PortInfo& _port_info)
-            {
-                AddPortType(_port_info);
-            }
-
-            Entry(Any&& other_any, const PortInfo& _port_info):
-              value (std::move(other_any))
-            {
-                AddPortType(_port_info);
-            }
-
-            Any& value() { return value_; }
-            const Types& input_types  const { return input_types_;  }
-            const Types& output_types const { return output_types_; }
-
-            void addPortType(const PortInfo& _port_info)
-            {
-                std::type_index port_type = *_port_info.type();
-
-                switch(_port_info.direction())
-                {
-                    case PortInfo::INPUT:
-                        input_types.insert(port_type);
-                        break;
-                    case PortInfo::OUTPUT:
-                        output_types.insert(port_type);
-                        break;
-                    case PortInfo::INOUT:
-                        input_types.insert(port_type);
-                        output_types.insert(port_type);
-                        break;
-                }
-            }
-
-        private:
-            Any value_;
-            Types input_types_;
-            Types output_types_;
-    };
-
-    mutable std::mutex mutex_;
-    std::unordered_map<std::string, Entry> storage_;
-    std::weak_ptr<Blackboard> parent_bb_;
-    std::unordered_map<std::string,std::string> internal_to_external_;
-};
-
-} // end namespace
-
-#endif   // BLACKBOARD_H
