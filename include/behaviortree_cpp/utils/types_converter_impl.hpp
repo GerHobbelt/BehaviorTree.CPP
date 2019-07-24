@@ -28,7 +28,8 @@ namespace BT
     To TypesConverter::convert(Any value) const
     {
         const TypeKey& type_key  = getTypeKey<To>(value.type());
-        const Any& converted_any = converters_.at(type_key)(value);
+        const ConverterFunction& conversion = getConversion(type_key);
+        const Any& converted_any& = conversion(value);
 
         return converted_any.cast<To>();
     }
@@ -37,7 +38,8 @@ namespace BT
     To TypesConverter::convert(const Any* value) const
     {
         const TypeKey& type_key  = getTypeKey<To>(value->type());
-        const Any& converted_any = converters_.at(type_key)(*value);
+        const ConverterFunction& conversion = getConversion(type_key);
+        const Any converted_any& = conversion(*value);
 
         return converted_any.cast<To>();
     }
@@ -77,6 +79,19 @@ namespace BT
     inline TypesConverter::TypeKey TypesConverter::getTypeKey(const std::type_info& from_type, const std::type_info& to_type) const
     {
         return { from_type, to_type };
+    }
+
+    inline TypesConverter::ConverterFunction getConversion(const TypeKey& _key) const
+    {
+        try
+        {
+            return converters_.at(_key);
+        }
+        catch(const std::out_of_range&)
+        {
+            throw LogicError { "Type conversion failed. No known conversion from type ", demangle(_key.first),
+                                " to type ", demangle(_key.second) };
+        }
     }
 }
 

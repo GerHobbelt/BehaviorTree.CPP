@@ -2,7 +2,7 @@
 #define BLACKBOARD_ENTRY_H
 
 #include <set>
-#include <type_index>
+#include <typeindex>
 
 #include "behaviortree_cpp/basic_types.h"
 #include "behaviortree_cpp/utils/safe_any.hpp"
@@ -10,8 +10,6 @@
 #include "behaviortree_cpp/exceptions.h"
 
 namespace BT
-{
-namespace details
 {
     class Entry
     {
@@ -21,18 +19,29 @@ namespace details
             Entry(Any&& other_any, const PortDirection _direction, const TypesConverter& _converter);
 
             template<class T>
-            T get();
+            T get() const
+            {
+                AddType(typeid(T), PortDirection::INPUT);
+                return converter_.convert<T>(value_);
+            }
+
+            template<class T>
+            void set(T&& value)
+            {
+                AddType(typeid(T), PortDirection::OUTPUT);
+                value_ = _value;
+            }
 
             void addType(const PortInfo& _info);
             void addType(const std::type_info* _type, const PortDirection _direction);
 
         private:
-            bool AreTypesCompatible();
+            using Types = std::set<std::type_index>;
+            void checkTypesCompatible(const Types& _output_types, const Types& _input_types);
 
         private:
             Any value_;
 
-            using Types = std::set<std::type_index>;
             Types input_types_;
             Types output_types_;
 
@@ -40,7 +49,6 @@ namespace details
     };
 };
 
-} // end namespace details
 } // end namespace BT
 
 #endif   // BLACKBOARD_ENTRY_H

@@ -187,11 +187,10 @@ inline Result TreeNode::getInput(const std::string& key, T& destination) const
     auto remap_it = config_.input_ports.find(key);
     if (remap_it == config_.input_ports.end())
     {
-        return nonstd::make_unexpected(StrCat("getInput() failed because "
-                                              "NodeConfiguration::input_ports "
-                                              "does not contain the key: [",
-                                              key, "]"));
+        throw LogicError("getInput() failed because NodeConfiguration::input_ports ",
+                         "does not contain the key: [", key, "]");
     }
+
     auto remapped_res = getRemappedKey(key, remap_it->second);
     try
     {
@@ -209,6 +208,11 @@ inline Result TreeNode::getInput(const std::string& key, T& destination) const
             remapped_key = stripBlackboardPointer(remapped_key);
         }
 
+        if (!config_.blackboard)
+        {
+            throw LogicError("getInput() trying to access a Blackboard(BB) entry, but BB is invalid");
+        }
+
         std::string remapped_key_string = remapped_key.to_string();
 
         for (size_t i=0; i < indirection_levels; i++)
@@ -217,21 +221,18 @@ inline Result TreeNode::getInput(const std::string& key, T& destination) const
             remapped_key_string = inner_val->cast<std::string>();
         }
 
-        if (!config_.blackboard)
+        const Expected<T>& expected_result = config_.blackboard->get<T>(remapped_key_string);
+
+        if(!expected_result)
         {
-            return nonstd::make_unexpected("getInput() trying to access a Blackboard(BB) entry, "
-                                           "but BB is invalid");
+            return nonstd::make_unexpected(StrCat("getInput() failed because it was unable to find the "
+                                                  "key [",
+                                                  key, "] remapped to [", remapped_key, "]"));
         }
 
-        //TODO: All this checks should be done in the blackboard
-        destination = config_.blackboard->get<T>(remapped_key_string)
+        destination = expected_result.value(); 
         return {};
 
-        /*
-        return nonstd::make_unexpected(StrCat("getInput() failed because it was unable to find the "
-                                              "key [",
-                                              key, "] remapped to [", remapped_key, "]"));
-        */
     }
     catch (std::exception& err)
     {
@@ -240,27 +241,27 @@ inline Result TreeNode::getInput(const std::string& key, T& destination) const
 }
 
 template <typename T>
-inline Result TreeNode::setOutput(const std::string& key, const T& value)
+inline void TreeNode::setOutput(const std::string& key, const T& value)
 {
     if (!config_.blackboard)
     {
-        return nonstd::make_unexpected("setOutput() failed: trying to access a "
-                                       "Blackboard(BB) entry, but BB is invalid");
+        throw LogicError("setOutput() failed: trying to access a ",
+                         "Blackboard(BB) entry, but BB is invalid");
     }
 
     auto remap_it = config_.output_ports.find(key);
     if (remap_it == config_.output_ports.end())
     {
-        return nonstd::make_unexpected(StrCat("setOutput() failed: NodeConfiguration::output_ports "
-                                              "does not "
-                                              "contain the key: [",
-                                              key, "]"));
+        throw LogicError("setOutput() failed: NodeConfiguration::output_ports does not ",
+                         "contain the key: [", key, "]");
     }
+
     StringView remapped_key = remap_it->second;
     if (remapped_key == "=")
     {
         remapped_key = key;
     }
+
     if (isBlackboardPointer(remapped_key))
     {
         remapped_key = stripBlackboardPointer(remapped_key);
@@ -268,8 +269,6 @@ inline Result TreeNode::setOutput(const std::string& key, const T& value)
     const auto& key_str = remapped_key.to_string();
 
     config_.blackboard->set(key_str, value);
-
-    return {};
 }
 
 // Utility function to fill the list of ports using T::providedPorts();

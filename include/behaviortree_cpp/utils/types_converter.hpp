@@ -6,6 +6,7 @@
 
 #include "behaviortree_cpp/utils/hash_pair.hpp"
 #include "behaviortree_cpp/utils/safe_any.hpp"
+#include "behaviortree_cpp/exceptions.h"
 
 namespace BT
 {
@@ -47,6 +48,8 @@ namespace BT
             TypeKey getTypeKey(const std::type_info& from_type) const;
 
             TypeKey getTypeKey(const std::type_info& from_type, const std::type_info& to_type) const;
+
+            ConverterFunction getConversion(const TypeKey& _key) const;
 
         private:
             using AnyConverter = std::function<Any(const Any&)>;
