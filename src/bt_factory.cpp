@@ -190,8 +190,8 @@ void BehaviorTreeFactory::registerDefaultNodes()
 
 void BehaviorTreeFactory::registerDefaultTypesConversions()
 {
+    registerTypeConverter<float, double>("Float2Double", &Any::cast<double>);
     /*
-    registerTypeConverter<int64_t,  std::string>("Test");
     registerTypeConverter<uint64_t, std::string>("Test");
     registerTypeConverter<double,   std::string>("Test");
     */

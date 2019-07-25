@@ -2,7 +2,7 @@
 #define DEMANGLE_UTIL_H
 
 #include <string>
-
+#include <typeindex>
 
 #if defined( __clang__ ) && defined( __has_include )
 # if __has_include(<cxxabi.h>)
@@ -107,6 +107,25 @@ inline std::string demangle(const std::type_info* info)
 inline std::string demangle(const std::type_info& info)
 {
     return demangle(&info);
+}
+
+inline std::string demangle(const std::type_index& info)
+{
+    if (info == typeid(std::string))
+    {
+        return "std::string";
+    }
+
+    scoped_demangled_name demangled_name(info.name());
+    char const* const p = demangled_name.get();
+    if (p)
+    {
+        return p;
+    }
+    else
+    {
+        return info.name();
+    }
 }
 
 } // namespace BT

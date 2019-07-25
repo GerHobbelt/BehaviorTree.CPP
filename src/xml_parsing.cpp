@@ -425,6 +425,8 @@ Tree XMLParser::instantiateTree(const Blackboard::Ptr& root_blackboard)
     }
     // first blackboard
     output_tree.blackboard_stack.push_back( root_blackboard );
+    //TODO: should this be a single global reference for all the blackboards in the tree?
+    root_blackboard->setTypesConverter(_p->factory.typesConverter());
 
     _p->recursivelyCreateTree(main_tree_ID,
                               output_tree,
@@ -434,13 +436,6 @@ Tree XMLParser::instantiateTree(const Blackboard::Ptr& root_blackboard)
     if( output_tree.nodes.size() > 0)
     {
         output_tree.root_node = output_tree.nodes.front().get();
-    }
-
-    //Set type converter for all blackboards
-    //TODO: should this be a single global reference for all the blackboards in the tree?
-    for(const auto& blackboard : output_tree.blackboard_stack)
-    {
-        blackboard->setTypesConverter(_p->factory.typesConverter());
     }
     
     return output_tree;
@@ -500,8 +495,6 @@ TreeNode::Ptr XMLParser::Pimpl::createNodeFromXML(const XMLElement *element,
 
     if( factory.builders().count(ID) != 0)
     {
-        std::cout << "MANIFEST INFO FOR NODE " << ID << std::endl;
-
         const auto& manifest = factory.manifests().at(ID);
 
         //Check that name in remapping can be found in the manifest
@@ -521,63 +514,41 @@ TreeNode::Ptr XMLParser::Pimpl::createNodeFromXML(const XMLElement *element,
             const std::string& port_name = port_it.first;
             const auto& port_info = port_it.second;
 
-            std::cout << "PORT NAME " << port_name << " direction " << port_info.direction() << std::endl;
-
             auto remap_it = remapping_parameters.find(port_name);
             if( remap_it == remapping_parameters.end())
             {
                 continue;
             }
-            StringView remapping_value = remap_it->second;
-            auto remapped_res = TreeNode::getRemappedKey(port_name, remapping_value);
 
-            if( remapped_res )
+            std::string port_key;
+
+            //Use the port value as key directly if it's not input
+            if(port_info.direction() != PortDirection::INPUT)
             {
-                const auto& port_key = remapped_res.value().to_string();
+                port_key = remap_it->second;
+            }
+            else
+            {
+                //Use the accessed variable otherwise
+                StringView remapping_value = remap_it->second;
+                auto remapped_res = TreeNode::getRemappedKey(port_name, remapping_value);
 
-                std::cout << "PORT KEY (from remapped_res)" << port_key << std::endl;
+                if( !remapped_res ) { continue; }
+                port_key = remapped_res.value().to_string();
+            }
 
-                auto prev_info = blackboard->portInfo( port_key );
-                if( !prev_info  )
-                {
-                    // not found, insert for the first time.
-                    std::cout << "INSERTING PORT INFO PORT NAME " << port_key << " WITH DIRECTION "<< port_info.direction()
-                        << " AND TYPE " << demangle(port_info.type()) << std::endl;
-                    blackboard->setPortInfo( port_key, port_info );
-                }
-                else{
-                    // found. check consistency
-                    if( prev_info->type() && port_info.type()  && // null type means that everything is valid
-                        prev_info->type()!= port_info.type())
-                    {
-                        std::cout << "CHECKING PORT "               << port_key << " with type " << demangle(port_info.type()) << std::endl;
-                        std::cout << "PREV PORT INFO DIRECTION "    << prev_info->direction() << std::endl;
-                        std::cout << "CURRENT PORT INFO DIRECTION " << port_info.direction() << std::endl;
-
-                        //TODO: handle INOUT ports and comparisons with the same direction
-                        bool is_convertible = factory.typesConverter().isConvertible(*prev_info->type(), *port_info.type());
-
-                        if(!is_convertible)
-                        {
-                            blackboard->debugMessage();
-                            throw RuntimeError( "The creation of the tree failed because the port [", port_key,
-                                               "] was initially created with type [", demangle( prev_info->type() ),
-                                               "] and, later type [", demangle( port_info.type() ),
-                                               "] was used somewhere else." );
-                        }
-                        else
-                        {
-                            std::cout << "Found type inconsistency on port [" << port_key <<
-                                               "] with type [" << demangle( prev_info->type() ) <<
-                                               "] and, later type [" <<  demangle( port_info.type() ) <<
-                                               "], but a custom conversion function has been provided." << std::endl;
-                        }
-                    }
-                }
+            try
+            {
+                //This checks the types (if they are equal or if a conversion exists)
+                blackboard->setPortInfo( port_key, port_info );
+            }
+            catch(const LogicError& ex)
+            {
+                blackboard->debugMessage();
+                throw LogicError( "The creation of the tree failed on port [", port_key,
+                                  "] in node [", ID, "/", instance_name, "]. Details: ", ex.what());
             }
         }
-
-        std::cout << "--------------" << std::endl;
 
         // use manifest to initialize NodeConfiguration
         for(const auto& remap_it: remapping_parameters)
@@ -597,6 +568,7 @@ TreeNode::Ptr XMLParser::Pimpl::createNodeFromXML(const XMLElement *element,
                 }
             }
         }
+
         // use default value if available for empty ports. Only inputs
         for (const auto& port_it: manifest.ports)
         {
@@ -650,6 +622,7 @@ void BT::XMLParser::Pimpl::recursivelyCreateTree(const std::string& tree_ID,
         if( node->type() == NodeType::SUBTREE )
         {
             auto new_bb = Blackboard::create(blackboard);
+            new_bb->setTypesConverter(factory.typesConverter());
 
             for (const XMLAttribute* attr = element->FirstAttribute(); attr != nullptr; attr = attr->Next())
             {

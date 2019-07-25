@@ -48,17 +48,17 @@ class Blackboard
      * Version of get() that returns an expected
     */
     template <typename T>
-    Expected<T> get(const std::string& key) const
+    Optional<T> get(const std::string& key)
     {
-        const auto& expected_entry = getEntry(key);
+        Optional<Entry> expected_entry = getEntry(key);
 
-        if(!expected_entry) { return expected_entry; }
-        return expected_entry.value().get<T>();
+        if(!expected_entry) { return nonstd::make_unexpected(expected_entry.error()); }
+        return expected_entry.value().getValue<T>();
     }
 
     // Update the entry with the given key
     template <typename T>
-    Result set(const std::string& key, const T& value)
+    void set(const std::string& key, const T& value)
     {
         std::unique_lock<std::mutex> lock(mutex_);
         auto it = storage_.find(key);
@@ -71,16 +71,17 @@ class Blackboard
                 const auto& remapped_key = remapping_it->second;
                 if( it == storage_.end() ) // virgin entry
                 {
-                    auto parent_info = parent->portInfo(remapped_key);
-                    if( parent_info )
+                    const Optional<Entry>& parent_entry = parent->getEntry(remapped_key);
+                    if( parent_entry )
                     {
-                        storage_.insert( {key, Entry( *parent_info ) } );
+                        storage_.insert( { key, Entry( parent_entry.value(), types_converter_) } );
                     }
                     else
                     {
-                        storage_.insert( {key, Entry( PortInfo() ) } );
+                        storage_.insert( {key, Entry( PortInfo(), types_converter_ ) } );
                     }
                 }
+
                 parent->set( remapped_key, value );
                 return;
             }
@@ -89,27 +90,24 @@ class Blackboard
         // Update it or create it for the first time 
         if( it != storage_.end() )
         {
-            it->second.value = Any(value);
+            it->second.setValue(value);
         }
         else
         {
-            storage_.emplace( key, Entry( Any(value), PortDirection::OUTPUT ) );
+            storage_.emplace( key, Entry( Any(value), PortDirection::OUTPUT, types_converter_ ) );
         }
     }
 
-    //void setPortInfo(std::string key, const PortInfo& info);
-    void addPortType(std::string key, const std::type_info* type);
+    void setPortInfo(std::string key, const PortInfo& info);
 
     void setTypesConverter(const TypesConverter& types_converter);
-
-    //const PortInfo *portInfo(const std::string& key);
 
     void addSubtreeRemapping(std::string internal, std::string external);
 
     void debugMessage() const;
 
   private:
-    Expected<Entry> getEntry(const std::string& key);
+    Optional<Entry> getEntry(const std::string& key) const;
 
   private:
     mutable std::mutex mutex_;
@@ -118,7 +116,7 @@ class Blackboard
     std::unordered_map<std::string,std::string> internal_to_external_;
 
     //TODO: should this be an unique global reference for all the trees?
-    const TypesConverter types_converter_;
+    TypesConverter types_converter_;
 };
 
 } // end namespace

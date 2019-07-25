@@ -14,26 +14,27 @@ namespace BT
     class Entry
     {
         public:
+            Entry(const Entry& _other_entry, const TypesConverter& _converter);
             Entry(const PortInfo& _port_info, const TypesConverter& _converter);
             Entry(Any&& other_any, const PortInfo& _port_info, const TypesConverter& _converter);
             Entry(Any&& other_any, const PortDirection _direction, const TypesConverter& _converter);
 
             template<class T>
-            T get() const
+            T getValue()
             {
-                AddType(typeid(T), PortDirection::INPUT);
+                addPortInfo(typeid(T), PortDirection::INPUT);
                 return converter_.convert<T>(value_);
             }
 
             template<class T>
-            void set(T&& value)
+            void setValue(T&& _value)
             {
-                AddType(typeid(T), PortDirection::OUTPUT);
-                value_ = _value;
+                addPortInfo(typeid(T), PortDirection::OUTPUT);
+                value_ = Any(_value);
             }
 
-            void addType(const PortInfo& _info);
-            void addType(const std::type_info* _type, const PortDirection _direction);
+            void addPortInfo(const PortInfo& _info);
+            void addPortInfo(const std::type_info& _type, const PortDirection _direction);
 
         private:
             using Types = std::set<std::type_index>;
@@ -47,7 +48,6 @@ namespace BT
 
             const TypesConverter& converter_;
     };
-};
 
 } // end namespace BT
 

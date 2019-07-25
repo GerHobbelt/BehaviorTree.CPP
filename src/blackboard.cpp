@@ -1,12 +1,13 @@
 #include "behaviortree_cpp/blackboard.h"
 
-namespace BT{
+namespace BT
+{
 
-/*
 void Blackboard::setPortInfo(std::string key, const PortInfo& info)
 {
-    std::cout << "Blackboard setPortInfo. Key: " << key << std::endl;
-
+    std::cout << "--------------------------" << std::endl;
+    std::cout << "Blackboard set port info for key " << key << " with type "
+              << demangle(info.type()) << " and direction " << info.direction() << std::endl;
     std::unique_lock<std::mutex> lock(mutex_);
 
     if( auto parent = parent_bb_.lock())
@@ -21,52 +22,15 @@ void Blackboard::setPortInfo(std::string key, const PortInfo& info)
     auto it = storage_.find(key);
     if( it == storage_.end() )
     {
-        storage_.insert( { std::move(key), Entry(info) } );
+        storage_.insert( { std::move(key), Entry(info, types_converter_) } );
     }
-    else{
-        auto old_type = it->second.port_info.type();
-        if( old_type && old_type != info.type() )
-        {
-            throw LogicError( " This happened Blackboard::set() failed: once declared, the type of a port shall not change. "
-                             "Declared type [",     BT::demangle( old_type ),
-                             "] != current type [", BT::demangle( info.type() ), "]" );
-        }
-    }
-}
-*/
-
-void Blackboard::addPortType(std::string key, const std::type_info* info)
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-
-    if( auto parent = parent_bb_.lock())
+    else
     {
-        auto remapping_it = internal_to_external_.find(key);
-        if( remapping_it != internal_to_external_.end())
-        {
-            parent->addPortType( remapping_it->second, info );
-        }
+        it->second.addPortInfo(info);
     }
 
-    auto it = storage_.find(key);
-    if( it == storage_.end() )
-    {
-        storage_.insert( { std::move(key), Entry(*info) } );
-    }
+    std::cout << "--------------------------" << std::endl;
 }
-
-/*
-const PortInfo* Blackboard::portInfo(const std::string &key)
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    auto it = storage_.find(key);
-    if( it == storage_.end() )
-    {
-        return nullptr;
-    }
-    return &(it->second.port_info);
-}
-*/
 
 void Blackboard::addSubtreeRemapping(std::string internal, std::string external)
 {
@@ -78,8 +42,12 @@ void Blackboard::setTypesConverter(const TypesConverter& types_converter)
     types_converter_ = types_converter;
 }
 
+//TODO: re-implement this
 void Blackboard::debugMessage() const
 {
+    std::cout << "Blackboard::debugMessage not yet implemented" << std::endl;
+
+    /*
     for(const auto& entry_it: storage_)
     {
         auto port_type = entry_it.second.port_info.type();
@@ -102,27 +70,11 @@ void Blackboard::debugMessage() const
 
         std::cout << ((entry_it.second.value.empty()) ? "empty" : "full") <<  std::endl;
     }
+    */
 }
 
 // Private
-bool Blackboard::areEntryTypesCompatible(const Entry& _entry)
-{
-    const Entry::Types& input_types = _entry.input_types();
-
-    for(const std::type_index& output_type : _entry.output_types())
-    {
-        if(!std::all_of(input_types.cbegin(), input_types.cend(),
-                    [&output_type] (const std::type_index& _input_type)
-                    { return types_converter_.value().isConvertible(output_type, _input_type) }))
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-Expected<Entry> Blackboard::getEntry(const std::string& key)
+Optional<Entry> Blackboard::getEntry(const std::string& key) const
 {
     std::unique_lock<std::mutex> lock(mutex_);
 
@@ -136,8 +88,7 @@ Expected<Entry> Blackboard::getEntry(const std::string& key)
     }
 
     auto it = storage_.find(key);
-    return ( it == storage_.end()) ? nonstd::make_unexpected { "Key ", key, " not found" } : *it;
+    return ( it == storage_.end()) ? nonstd::make_unexpected(StrCat("Key ", key, " not found")) :  Optional<Entry>(it->second);
 }
 
-}
 }

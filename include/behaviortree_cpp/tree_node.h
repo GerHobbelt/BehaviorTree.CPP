@@ -192,56 +192,52 @@ inline Result TreeNode::getInput(const std::string& key, T& destination) const
     }
 
     auto remapped_res = getRemappedKey(key, remap_it->second);
-    try
+
+    if (!remapped_res)
     {
-        if (!remapped_res)
-        {
-            destination = convertFromString<T>(remap_it->second);
-            return {};
-        }
-
-        auto& remapped_key = remapped_res.value();
-        size_t indirection_levels {};
-        while( isBlackboardPointer(remapped_key) )
-        {
-            indirection_levels++;
-            remapped_key = stripBlackboardPointer(remapped_key);
-        }
-
-        if (!config_.blackboard)
-        {
-            throw LogicError("getInput() trying to access a Blackboard(BB) entry, but BB is invalid");
-        }
-
-        std::string remapped_key_string = remapped_key.to_string();
-
-        for (size_t i=0; i < indirection_levels; i++)
-        {
-            auto inner_val = config_.blackboard->getAny(remapped_key_string);
-            remapped_key_string = inner_val->cast<std::string>();
-        }
-
-        const Expected<T>& expected_result = config_.blackboard->get<T>(remapped_key_string);
-
-        if(!expected_result)
-        {
-            return nonstd::make_unexpected(StrCat("getInput() failed because it was unable to find the "
-                                                  "key [",
-                                                  key, "] remapped to [", remapped_key, "]"));
-        }
-
-        destination = expected_result.value(); 
+        destination = convertFromString<T>(remap_it->second);
         return {};
+    }
 
-    }
-    catch (std::exception& err)
+    auto& remapped_key = remapped_res.value();
+    size_t indirection_levels {};
+    while( isBlackboardPointer(remapped_key) )
     {
-        return nonstd::make_unexpected(err.what());
+        indirection_levels++;
+        remapped_key = stripBlackboardPointer(remapped_key);
     }
+
+    if (!config_.blackboard)
+    {
+        throw LogicError("getInput() trying to access a Blackboard(BB) entry, but BB is invalid");
+    }
+
+    std::string remapped_key_string = remapped_key.to_string();
+
+    for (size_t i=0; i < indirection_levels; i++)
+    {
+        const auto& inner_val = config_.blackboard->get<std::string>(remapped_key_string);
+        if(!inner_val) { return nonstd::make_unexpected(inner_val.error()); }
+
+        remapped_key_string = inner_val.value();
+    }
+
+    const auto& expected_result = config_.blackboard->get<T>(remapped_key_string);
+
+    if(!expected_result)
+    {
+        return nonstd::make_unexpected(StrCat("getInput() failed because it was unable to find the "
+                                              "key [",
+                                              key, "] remapped to [", remapped_key, "]"));
+    }
+
+    destination = expected_result.value(); 
+    return {};
 }
 
+//TODO: exceptions or unexpected?
 template <typename T>
-inline void TreeNode::setOutput(const std::string& key, const T& value)
+inline Result TreeNode::setOutput(const std::string& key, const T& value)
 {
     if (!config_.blackboard)
     {
@@ -269,6 +265,7 @@ inline void TreeNode::setOutput(const std::string& key, const T& value)
     const auto& key_str = remapped_key.to_string();
 
     config_.blackboard->set(key_str, value);
+    return {};
 }
 
 // Utility function to fill the list of ports using T::providedPorts();

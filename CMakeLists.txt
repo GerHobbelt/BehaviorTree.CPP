@@ -129,6 +129,7 @@ list(APPEND BT_SOURCE
     src/basic_types.cpp
     src/behavior_tree.cpp
     src/blackboard.cpp
+    src/blackboard_entry.cpp
     src/bt_factory.cpp
     src/decorator_node.cpp
     src/condition_node.cpp
@@ -190,7 +191,7 @@ if(MSVC)
     target_compile_options(${BEHAVIOR_TREE_LIBRARY} PRIVATE /W4 /WX)
 else()
     target_compile_options(${BEHAVIOR_TREE_LIBRARY} PRIVATE
-        -Wall -Wextra -Werror=return-type)
+        -Wall -Wextra -Werror=return-type -Wfatal-errors)
 endif()
 
 ######################################################

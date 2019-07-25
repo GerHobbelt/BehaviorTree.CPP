@@ -1,7 +1,6 @@
 #ifndef HASH_PAIR_HPP
 #define HASH_PAIR_HPP
 
-#include <functional>
 #include <utility>
 
 namespace BT
