@@ -89,7 +89,7 @@ else()
 
 endif()
 if(NOT MSVC)
-    #list(APPEND BEHAVIOR_TREE_EXTERNAL_LIBRARIES "dw")
+    list(APPEND BEHAVIOR_TREE_EXTERNAL_LIBRARIES "dw")
 endif()
 
 #############################################################
