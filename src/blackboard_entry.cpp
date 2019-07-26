@@ -53,7 +53,7 @@ namespace BT
 
     void Entry::addPortInfo(const std::type_info& _type, const PortDirection _direction)
     {
-        std::pair<Types::iterator, bool> insert_result;
+        std::pair<Types::iterator, bool> insert_result {};
 
         switch(_direction)
         {
@@ -64,13 +64,13 @@ namespace BT
                 insert_result = output_types_.insert(_type);
                 break;
             case PortDirection::INOUT:
-                //TODO: fix this comparison
-                insert_result = input_types_.insert(_type);
-                insert_result = output_types_.insert(_type);
+                {
+                    insert_result = input_types_.insert(_type);
+                    if(insert_result.second) { output_types_.insert(_type); }
+                    else { insert_result = output_types_.insert(_type); }
+                }
                 break;
         }
-
-        std::cout << "BEFORE CHECK TYPES COMPATIBLES" << std::endl;
 
         //Check for type compatibility only if there has been changes in the type
         if(insert_result.second)
@@ -86,8 +86,6 @@ namespace BT
         {
             for(const std::type_index& input_type : _input_types)
             {
-                std::cout << "Comparing output type " << demangle(output_type)
-                    << " with input type " << demangle(input_type) << std::endl;
                 if(!converter_.isConvertible(output_type, input_type))
                 {
                     throw LogicError { "Incompatible entry types. No known conversion from ",

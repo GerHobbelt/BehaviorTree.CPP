@@ -22,6 +22,9 @@ namespace BT
             template<class T>
             T getValue()
             {
+                //TODO: checks on the setter and getter could be removed if more strict rules where applied
+                //to the nodes. For example, if they could only request in the tick() functions the same type
+                //they have specified in their port list (this would mean getting rid off the whole void stuff)
                 addPortInfo(typeid(T), PortDirection::INPUT);
                 return converter_.convert<T>(value_);
             }

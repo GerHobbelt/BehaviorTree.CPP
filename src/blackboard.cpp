@@ -5,9 +5,6 @@ namespace BT
 
 void Blackboard::setPortInfo(std::string key, const PortInfo& info)
 {
-    std::cout << "--------------------------" << std::endl;
-    std::cout << "Blackboard set port info for key " << key << " with type "
-              << demangle(info.type()) << " and direction " << info.direction() << std::endl;
     std::unique_lock<std::mutex> lock(mutex_);
 
     if( auto parent = parent_bb_.lock())
@@ -28,8 +25,6 @@ void Blackboard::setPortInfo(std::string key, const PortInfo& info)
     {
         it->second.addPortInfo(info);
     }
-
-    std::cout << "--------------------------" << std::endl;
 }
 
 void Blackboard::addSubtreeRemapping(std::string internal, std::string external)

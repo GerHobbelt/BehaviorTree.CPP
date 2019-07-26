@@ -113,6 +113,15 @@ class Any
         return _any.type() == typeid(SafeAny::SimpleString);
     }
 
+    template <typename T>
+    bool isConvertible()
+    {
+        return (typeid(T) == type()) ||
+               (typeid(T) == castedType()) ||
+               (std::is_arithmetic<T>::value && isNumber()) ||
+               ((isNumber() || isString()) && std::is_same<T, std::string>::value);
+    }
+
     // this is different from any_cast, because if allows safe
     // conversions between arithmetic values.
     template <typename T>

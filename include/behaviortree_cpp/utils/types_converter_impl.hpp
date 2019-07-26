@@ -1,6 +1,8 @@
 #ifndef TYPES_CONVERTER_IMPL_HPP
 #define TYPES_CONVERTER_IMPL_HPP
 
+#include <set>
+
 #include "behaviortree_cpp/utils/types_converter.hpp"
 
 namespace BT
@@ -27,7 +29,7 @@ namespace BT
     template<class To>
     To TypesConverter::convert(Any value) const
     {
-        if(typeid(To) == value.type()) { return value.cast<To>(); }
+        if(value.isConvertible<To>()) { return value.cast<To>(); }
 
         const AnyConverter& conversion = getConversion<To>(value.type());
         const Any& converted_any       = conversion(value);
@@ -49,16 +51,18 @@ namespace BT
 
     inline bool TypesConverter::isConvertible(const std::type_info& from_type, const std::type_info& to_type) const
     {
-        if(from_type == to_type) { return true; }
-
-        const TypeKey& type_key = getTypeKey(from_type, to_type);
-        return converters_.find(type_key) != converters_.cend();
+        return isConvertible(std::type_index(from_type), std::type_index(to_type));
     }
 
     inline bool TypesConverter::isConvertible(const std::type_index& from_type, const std::type_index& to_type) const
     {
-        if(from_type == to_type) { return true; }
+        //Check first if a basic conversion is possible
+        if( (from_type == to_type) ||
+            (from_type == typeid(std::string) && isBasicType(to_type)) ||
+            (isBasicType(from_type) && isBasicType(to_type)))
+        { return true; }
 
+        //Look for a user-defined conversion otherwise
         const TypeKey type_key { from_type, to_type };
         return converters_.find(type_key) != converters_.cend();
     }
@@ -93,6 +97,21 @@ namespace BT
             throw LogicError { "Type conversion failed. No known conversion from type ", demangle(_from),
                                 " to type ", demangle(_to) };
         }
+    }
+
+    inline bool TypesConverter::isBasicType(const std::type_index& _type) const
+    {
+        //These are all the types (except enums) that are supported by SafeAny by default
+        //Note: this does not detect enums as a convertible type (it's not possible to detect a family of types
+        //just with runtime info as typeid)
+        static const std::set<std::type_index> convertible_types
+        {
+            typeid(bool),    typeid(char),        typeid(char16_t),    typeid(char32_t),  typeid(wchar_t),
+            typeid(short),   typeid(int),         typeid(long),        typeid(long long), typeid(float),
+            typeid(double),  typeid(long double), typeid(std::string), typeid(SafeAny::SimpleString)
+        };
+
+        return convertible_types.find(_type) != convertible_types.cend();
     }
 }
 

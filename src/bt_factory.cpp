@@ -190,11 +190,8 @@ void BehaviorTreeFactory::registerDefaultNodes()
 
 void BehaviorTreeFactory::registerDefaultTypesConversions()
 {
-    registerTypeConverter<float, double>("Float2Double", &Any::cast<double>);
-    /*
-    registerTypeConverter<uint64_t, std::string>("Test");
-    registerTypeConverter<double,   std::string>("Test");
-    */
+    //Add something here?
+    //Conversions for types supported by SafeAny are already handled in TypesConverter
 }
 
 Tree BehaviorTreeFactory::createTreeFromFile(const std::string &file_path,

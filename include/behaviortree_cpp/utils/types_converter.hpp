@@ -51,6 +51,8 @@ namespace BT
 
             AnyConverter getConversion(const std::type_info& _from, const std::type_info& _to) const;
 
+            bool isBasicType(const std::type_index& _type) const;
+
         private:
             std::unordered_map<TypeKey, AnyConverter, hash_pair> converters_;
     };
