@@ -106,9 +106,10 @@ namespace BT
         //just with runtime info as typeid)
         static const std::set<std::type_index> convertible_types
         {
-            typeid(bool),    typeid(char),        typeid(char16_t),    typeid(char32_t),  typeid(wchar_t),
-            typeid(short),   typeid(int),         typeid(long),        typeid(long long), typeid(float),
-            typeid(double),  typeid(long double), typeid(std::string), typeid(SafeAny::SimpleString)
+            typeid(bool),    typeid(char),              typeid(char16_t),    typeid(char32_t),  typeid(wchar_t),
+            typeid(unsigned char),    typeid(unsigned), typeid(uint16_t),    typeid(uint32_t),  typeid(uint64_t),
+            typeid(short),   typeid(int),               typeid(long),        typeid(long long), typeid(float),
+            typeid(double),  typeid(long double),       typeid(std::string), typeid(SafeAny::SimpleString)
         };
 
         return convertible_types.find(_type) != convertible_types.cend();

@@ -190,8 +190,18 @@ void BehaviorTreeFactory::registerDefaultNodes()
 
 void BehaviorTreeFactory::registerDefaultTypesConversions()
 {
-    //Add something here?
     //Conversions for types supported by SafeAny are already handled in TypesConverter
+    //TODO: decide what to do with convertFromString and ToStr template specializations
+    registerTypeConverter<std::string, StringView>(convertFromString<StringView>);
+    registerTypeConverter<std::string, const char*>(convertFromString<const char*>);
+    registerTypeConverter<std::string, int>(convertFromString<int>);
+    registerTypeConverter<std::string, unsigned>(convertFromString<unsigned>);
+    registerTypeConverter<std::string, double>(convertFromString<double>);
+    registerTypeConverter<std::string, std::vector<int>>(convertFromString<std::vector<int>>);
+    registerTypeConverter<std::string, std::vector<double>>(convertFromString<std::vector<double>>);
+    registerTypeConverter<std::string, bool>(convertFromString<bool>);
+    registerTypeConverter<std::string, NodeType>(convertFromString<NodeType>);
+    registerTypeConverter<std::string, PortDirection>(convertFromString<PortDirection>);
 }
 
 Tree BehaviorTreeFactory::createTreeFromFile(const std::string &file_path,
