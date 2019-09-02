@@ -35,9 +35,11 @@ if( ZMQ_FOUND )
     add_definitions( -DZMQ_FOUND )
     list(APPEND BT_SOURCE src/loggers/bt_zmq_publisher.cpp)
     list(APPEND BEHAVIOR_TREE_EXTERNAL_LIBRARIES zmq)
+
 else()
     message(WARNING "ZeroMQ NOT found. Skipping the build of [PublisherZMQ] and [bt_recorder].")
 endif()
+
 
 set(BEHAVIOR_TREE_LIBRARY ${PROJECT_NAME})
 
@@ -75,6 +77,7 @@ elseif( CATKIN_DEVEL_PREFIX OR CATKIN_BUILD_BINARY_PACKAGE)
         INCLUDE_DIRS include # do not include "3rdparty" here
         LIBRARIES ${BEHAVIOR_TREE_LIBRARY}
         CATKIN_DEPENDS roslib
+        CFG_EXTRAS behaviortree_cpp-extras.cmake # ZMQ found var
         )
 
     list(APPEND BEHAVIOR_TREE_EXTERNAL_LIBRARIES ${catkin_LIBRARIES})
@@ -230,9 +233,5 @@ endif()
 if( BUILD_EXAMPLES )
     add_subdirectory(sample_nodes)
     add_subdirectory(examples)
-endif()
-
-if( ZMQ_FOUND )
-    target_compile_definitions(${BEHAVIOR_TREE_LIBRARY} PUBLIC ZMQ_FOUND)
 endif()
 
