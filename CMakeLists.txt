@@ -140,6 +140,7 @@ list(APPEND BT_SOURCE
     src/shared_library.cpp
     src/tree_node.cpp
     src/xml_parsing.cpp
+    src/utils/blackboard_util.cpp
 
     src/decorators/inverter_node.cpp
     src/decorators/repeat_node.cpp

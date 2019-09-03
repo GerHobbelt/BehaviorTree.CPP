@@ -1,4 +1,5 @@
 #include "behaviortree_cpp/blackboard.h"
+#include "behaviortree_cpp/utils/blackboard_util.h"
 
 namespace BT
 {
@@ -12,7 +13,17 @@ void Blackboard::setPortInfo(std::string key, const PortInfo& info)
         auto remapping_it = internal_to_external_.find(key);
         if( remapping_it != internal_to_external_.end())
         {
-            parent->setPortInfo( remapping_it->second, info );
+            std::string port_key;
+
+            if(isBlackboardPointer(remapping_it->second))
+            {
+                parent->setPortInfo( std::string(stripBlackboardPointer(remapping_it->second)), info );
+            }
+            else
+            {
+                parent->setPortInfo( remapping_it->first, info );
+                parent->set(remapping_it->first, remapping_it->second);
+            }
         }
     }
 
@@ -78,7 +89,12 @@ Optional<Entry> Blackboard::getEntry(const std::string& key) const
         auto remapping_it = internal_to_external_.find(key);
         if( remapping_it != internal_to_external_.end())
         {
-            return parent->getEntry( remapping_it->second );
+            if(isBlackboardPointer(remapping_it->second))
+            {
+                return parent->getEntry( std::string(stripBlackboardPointer(remapping_it->second)) );
+            }
+
+            return parent->getEntry(remapping_it->first);
         }
     }
 

@@ -29,6 +29,11 @@ namespace BT
     template<class To>
     To TypesConverter::convert(Any value) const
     {
+        if(value.empty())
+        {
+            throw std::runtime_error { "TypesConverter::convert failed because value is empty" };
+        }
+
         if(value.isConvertible<To>()) { return value.cast<To>(); }
 
         const AnyConverter& conversion = getConversion<To>(value.type());

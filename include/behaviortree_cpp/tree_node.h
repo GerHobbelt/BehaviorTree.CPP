@@ -21,6 +21,7 @@
 #include "behaviortree_cpp/basic_types.h"
 #include "behaviortree_cpp/blackboard.h"
 #include "behaviortree_cpp/utils/strcat.hpp"
+#include "behaviortree_cpp/utils/blackboard_util.h"
 
 #ifdef _MSC_VER 
 #pragma warning(disable : 4127) 
@@ -139,12 +140,6 @@ class TreeNode
 
     template <typename T>
     Result setOutput(const std::string& key, const T& value);
-
-    /// Check a string and return true if it matches either one of these
-    /// two patterns:  {...} or ${...}
-    static bool isBlackboardPointer(StringView str);
-
-    static StringView stripBlackboardPointer(StringView str);
 
     static Optional<StringView> getRemappedKey(StringView port_name, StringView remapping_value);
 

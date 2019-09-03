@@ -116,6 +116,11 @@ class Any
     template <typename T>
     bool isConvertible()
     {
+        if( _any.empty() )
+        {
+            throw std::runtime_error("Any::isConvertible failed because it is empty");
+        }
+
         return (typeid(T) == type()) ||
                (typeid(T) == castedType()) ||
                (std::is_arithmetic<T>::value && isNumber()) ||
