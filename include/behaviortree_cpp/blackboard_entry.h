@@ -16,6 +16,7 @@ namespace BT
         public:
             Entry(const Entry& _other_entry, const TypesConverter& _converter);
             Entry(const PortInfo& _port_info, const TypesConverter& _converter);
+            Entry(Any&& other_any, const TypesConverter& _converter);
             Entry(Any&& other_any, const PortInfo& _port_info, const TypesConverter& _converter);
             Entry(Any&& other_any, const PortDirection _direction, const TypesConverter& _converter);
 

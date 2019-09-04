@@ -15,14 +15,13 @@ void Blackboard::setPortInfo(std::string key, const PortInfo& info)
         {
             std::string port_key;
 
+            // Only set the port info if the external port is a blackboard pointer
+            // If it's not a pointer, it means is a literal value written in the node's port
+            // and it shouldn't be stored in the blackboard, since the name could collide
+            // with other entries
             if(isBlackboardPointer(remapping_it->second))
             {
                 parent->setPortInfo( std::string(stripBlackboardPointer(remapping_it->second)), info );
-            }
-            else
-            {
-                parent->setPortInfo( remapping_it->first, info );
-                parent->set(remapping_it->first, remapping_it->second);
             }
         }
     }
@@ -94,7 +93,10 @@ Optional<Entry> Blackboard::getEntry(const std::string& key) const
                 return parent->getEntry( std::string(stripBlackboardPointer(remapping_it->second)) );
             }
 
-            return parent->getEntry(remapping_it->first);
+            // TODO: this probably should be moved from here, and call the types_converter_
+            // function directly instead of creating a new virtual entry
+            // (this case is a literal value written in the port using the GUI)
+            return Entry(Any(remapping_it->second), types_converter_);
         }
     }
 

@@ -17,6 +17,11 @@ namespace BT
         addPortInfo(_port_info);
     }
 
+    Entry::Entry(Any&& other_any, const TypesConverter& _converter):
+      value_     (std::move(other_any)),
+      converter_ (_converter)
+    {}
+
     Entry::Entry(Any&& other_any, const PortInfo& _port_info, const TypesConverter& _converter):
       value_     (std::move(other_any)),
       converter_ (_converter)
