@@ -18,35 +18,8 @@ namespace BT
 {
 BehaviorTreeFactory::BehaviorTreeFactory()
 {
-    registerNodeType<FallbackNode>("Fallback");
-    registerNodeType<SequenceNode>("Sequence");
-    registerNodeType<SequenceStarNode>("SequenceStar");
-    registerNodeType<ParallelNode>("Parallel");
-    registerNodeType<ReactiveSequence>("ReactiveSequence");
-    registerNodeType<ReactiveFallback>("ReactiveFallback");
-
-    registerNodeType<InverterNode>("Inverter");
-    registerNodeType<RetryNode>("RetryUntilSuccesful");
-    registerNodeType<RepeatNode>("Repeat");
-    registerNodeType<TimeoutNode>("Timeout");
-
-    registerNodeType<ForceSuccessNode>("ForceSuccess");
-    registerNodeType<ForceFailureNode>("ForceFailure");
-
-    registerNodeType<AlwaysSuccessNode>("AlwaysSuccess");
-    registerNodeType<AlwaysFailureNode>("AlwaysFailure");
-    registerNodeType<SetBlackboard>("SetBlackboard");
-
-    registerNodeType<DecoratorSubtreeNode>("SubTree");
-
-    registerNodeType<BlackboardPreconditionNode<int>>("BlackboardCheckInt");
-    registerNodeType<BlackboardPreconditionNode<double>>("BlackboardCheckDouble");
-    registerNodeType<BlackboardPreconditionNode<std::string>>("BlackboardCheckString");
-
-    for( const auto& it: builders_)
-    {
-        builtin_IDs_.insert( it.first );
-    }
+    registerDefaultNodes();
+    registerDefaultTypesConversions();
 }
 
 bool BehaviorTreeFactory::unregisterBuilder(const std::string& ID)
@@ -167,6 +140,11 @@ const std::set<std::string> &BehaviorTreeFactory::builtinNodes() const
     return builtin_IDs_;
 }
 
+const TypesConverter& BehaviorTreeFactory::typesConverter() const
+{
+    return types_converter_;
+}
+
 Tree BehaviorTreeFactory::createTreeFromText(const std::string &text,
                                              Blackboard::Ptr blackboard)
 {
@@ -175,6 +153,55 @@ Tree BehaviorTreeFactory::createTreeFromText(const std::string &text,
     auto tree = parser.instantiateTree(blackboard);
     tree.manifests = this->manifests();
     return tree;
+}
+
+void BehaviorTreeFactory::registerDefaultNodes()
+{
+    registerNodeType<FallbackNode>("Fallback");
+    registerNodeType<SequenceNode>("Sequence");
+    registerNodeType<SequenceStarNode>("SequenceStar");
+    registerNodeType<ParallelNode>("Parallel");
+    registerNodeType<ReactiveSequence>("ReactiveSequence");
+    registerNodeType<ReactiveFallback>("ReactiveFallback");
+
+    registerNodeType<InverterNode>("Inverter");
+    registerNodeType<RetryNode>("RetryUntilSuccesful");
+    registerNodeType<RepeatNode>("Repeat");
+    registerNodeType<TimeoutNode>("Timeout");
+
+    registerNodeType<ForceSuccessNode>("ForceSuccess");
+    registerNodeType<ForceFailureNode>("ForceFailure");
+
+    registerNodeType<AlwaysSuccessNode>("AlwaysSuccess");
+    registerNodeType<AlwaysFailureNode>("AlwaysFailure");
+    registerNodeType<SetBlackboard>("SetBlackboard");
+
+    registerNodeType<DecoratorSubtreeNode>("SubTree");
+
+    registerNodeType<BlackboardPreconditionNode<int>>("BlackboardCheckInt");
+    registerNodeType<BlackboardPreconditionNode<double>>("BlackboardCheckDouble");
+    registerNodeType<BlackboardPreconditionNode<std::string>>("BlackboardCheckString");
+
+    for( const auto& it: builders_)
+    {
+        builtin_IDs_.insert( it.first );
+    }
+}
+
+void BehaviorTreeFactory::registerDefaultTypesConversions()
+{
+    //Conversions for types supported by SafeAny are already handled in TypesConverter
+    //TODO: decide what to do with convertFromString and ToStr template specializations
+    registerTypeConverter<std::string, StringView>(convertFromString<StringView>);
+    registerTypeConverter<std::string, const char*>(convertFromString<const char*>);
+    registerTypeConverter<std::string, int>(convertFromString<int>);
+    registerTypeConverter<std::string, unsigned>(convertFromString<unsigned>);
+    registerTypeConverter<std::string, double>(convertFromString<double>);
+    registerTypeConverter<std::string, std::vector<int>>(convertFromString<std::vector<int>>);
+    registerTypeConverter<std::string, std::vector<double>>(convertFromString<std::vector<double>>);
+    registerTypeConverter<std::string, bool>(convertFromString<bool>);
+    registerTypeConverter<std::string, NodeType>(convertFromString<NodeType>);
+    registerTypeConverter<std::string, PortDirection>(convertFromString<PortDirection>);
 }
 
 Tree BehaviorTreeFactory::createTreeFromFile(const std::string &file_path,
@@ -202,6 +229,5 @@ Blackboard::Ptr Tree::rootBlackboard()
     }
     return {};
 }
-
 
 }   // end namespace

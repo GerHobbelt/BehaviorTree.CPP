@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 2.8.12) # version on Ubuntu Trusty
 project(behaviortree_cpp_v3)
 
 if(NOT CMAKE_VERSION VERSION_LESS 3.1)
-    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD 14)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 endif()
 
 if(MSVC)
@@ -35,9 +35,11 @@ if( ZMQ_FOUND )
     add_definitions( -DZMQ_FOUND )
     list(APPEND BT_SOURCE src/loggers/bt_zmq_publisher.cpp)
     list(APPEND BEHAVIOR_TREE_EXTERNAL_LIBRARIES zmq)
+
 else()
     message(WARNING "ZeroMQ NOT found. Skipping the build of [PublisherZMQ] and [bt_recorder].")
 endif()
+
 
 set(BEHAVIOR_TREE_LIBRARY ${PROJECT_NAME})
 
@@ -75,6 +77,7 @@ elseif( CATKIN_DEVEL_PREFIX OR CATKIN_BUILD_BINARY_PACKAGE)
         INCLUDE_DIRS include # do not include "3rdparty" here
         LIBRARIES ${BEHAVIOR_TREE_LIBRARY}
         CATKIN_DEPENDS roslib
+        CFG_EXTRAS behaviortree_cpp-extras.cmake # ZMQ found var
         )
 
     list(APPEND BEHAVIOR_TREE_EXTERNAL_LIBRARIES ${catkin_LIBRARIES})
@@ -89,7 +92,7 @@ else()
 
 endif()
 if(NOT MSVC)
-    #list(APPEND BEHAVIOR_TREE_EXTERNAL_LIBRARIES "dw")
+    list(APPEND BEHAVIOR_TREE_EXTERNAL_LIBRARIES "dw")
 endif()
 
 #############################################################
@@ -129,6 +132,7 @@ list(APPEND BT_SOURCE
     src/basic_types.cpp
     src/behavior_tree.cpp
     src/blackboard.cpp
+    src/blackboard_entry.cpp
     src/bt_factory.cpp
     src/decorator_node.cpp
     src/condition_node.cpp
@@ -136,6 +140,7 @@ list(APPEND BT_SOURCE
     src/shared_library.cpp
     src/tree_node.cpp
     src/xml_parsing.cpp
+    src/utils/blackboard_util.cpp
 
     src/decorators/inverter_node.cpp
     src/decorators/repeat_node.cpp
@@ -190,7 +195,7 @@ if(MSVC)
     target_compile_options(${BEHAVIOR_TREE_LIBRARY} PRIVATE /W4 /WX)
 else()
     target_compile_options(${BEHAVIOR_TREE_LIBRARY} PRIVATE
-        -Wall -Wextra -Werror=return-type)
+        -Wall -Wextra -Werror=return-type -Wfatal-errors)
 endif()
 
 ######################################################
@@ -229,9 +234,5 @@ endif()
 if( BUILD_EXAMPLES )
     add_subdirectory(sample_nodes)
     add_subdirectory(examples)
-endif()
-
-if( ZMQ_FOUND )
-    target_compile_definitions(${BEHAVIOR_TREE_LIBRARY} PUBLIC ZMQ_FOUND)
 endif()
 

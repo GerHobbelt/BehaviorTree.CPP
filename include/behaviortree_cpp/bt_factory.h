@@ -15,6 +15,7 @@
 #define BT_FACTORY_H
 
 #include <functional>
+#include <type_traits>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -22,8 +23,8 @@
 #include <algorithm>
 #include <set>
 
-
 #include "behaviortree_cpp/behavior_tree.h"
+#include "behaviortree_cpp/utils/types_converter.hpp"
 
 namespace BT
 {
@@ -216,6 +217,9 @@ public:
     /// List of builtin IDs.
     const std::set<std::string>& builtinNodes() const;
 
+    /// Type converter funtions
+    const TypesConverter& typesConverter() const;
+
     Tree createTreeFromText(const std::string& text,
                             Blackboard::Ptr blackboard = Blackboard::create());
 
@@ -228,10 +232,59 @@ public:
         return { getType<T>(), ID, getProvidedPorts<T>() };
     }
 
+    /*
+    template <typename T>
+    struct function_traits : public function_traits<decltype(&T::operator())> {};
+    // For generic types, directly use the result of the signature of its 'operator()'
+
+    template <typename ClassType, typename ReturnType, typename... Args>
+    struct function_traits<ReturnType(ClassType::*)(Args...) const>
+    // we specialize for pointers to member function
+    {
+        enum { arity = sizeof...(Args) };
+        // arity is the number of arguments.
+
+        typedef ReturnType result_type;
+
+        template <size_t i>
+        struct arg
+        {
+            typedef typename std::tuple_element<i, std::tuple<Args...>>::type type;
+            // the i-th argument is equivalent to the i-th tuple element of a tuple
+            // composed of those arguments.
+        };
+    };
+
+    template <class Functor, size_t i>
+    using arg_type = std::decay_t<typename function_traits<Functor>::template arg<i>::type>;
+
+    //template <class From, class Functor, class To = typename std::result_of<Functor(From)>::type>
+    template <class Functor, class From = typename function_traits<Functor>::template arg<0>::type,
+                             class To   = typename function_traits<Functor>::result_type>
+    void registerTypeConverter(Functor _functor)
+    {
+        std::cout << "Registering conversion between types " << demangle(typeid(From)) << " to " << demangle(typeid(To)) << std::endl;
+        //types_converter_.addConversion(converter);
+    }
+    */
+
+    template <class From, class To>
+    void registerTypeConverter(const ConverterFunction<From, To>& converter)
+    {
+        std::cout << "Registering conversion between types " << demangle(typeid(From)) << " to " << demangle(typeid(To)) << std::endl;
+        types_converter_.addConversion(converter);
+    }
+
+private:
+    void registerDefaultNodes();
+    void registerDefaultTypesConversions();
+
 private:
     std::unordered_map<std::string, NodeBuilder> builders_;
     std::unordered_map<std::string, TreeNodeManifest> manifests_;
     std::set<std::string> builtin_IDs_;
+
+    TypesConverter types_converter_;
 
     // template specialization = SFINAE + black magic
 

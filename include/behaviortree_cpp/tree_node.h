@@ -21,6 +21,7 @@
 #include "behaviortree_cpp/basic_types.h"
 #include "behaviortree_cpp/blackboard.h"
 #include "behaviortree_cpp/utils/strcat.hpp"
+#include "behaviortree_cpp/utils/blackboard_util.h"
 
 #ifdef _MSC_VER 
 #pragma warning(disable : 4127) 
@@ -140,12 +141,6 @@ class TreeNode
     template <typename T>
     Result setOutput(const std::string& key, const T& value);
 
-    /// Check a string and return true if it matches either one of these
-    /// two patterns:  {...} or ${...}
-    static bool isBlackboardPointer(StringView str);
-
-    static StringView stripBlackboardPointer(StringView str);
-
     static Optional<StringView> getRemappedKey(StringView port_name, StringView remapping_value);
 
   protected:
@@ -187,83 +182,77 @@ inline Result TreeNode::getInput(const std::string& key, T& destination) const
     auto remap_it = config_.input_ports.find(key);
     if (remap_it == config_.input_ports.end())
     {
-        return nonstd::make_unexpected(StrCat("getInput() failed because "
-                                              "NodeConfiguration::input_ports "
-                                              "does not contain the key: [",
-                                              key, "]"));
+        throw LogicError("getInput() failed because NodeConfiguration::input_ports ",
+                         "does not contain the key: [", key, "]");
     }
+
     auto remapped_res = getRemappedKey(key, remap_it->second);
-    try
+
+    if (!remapped_res)
     {
-        if (!remapped_res)
-        {
-            destination = convertFromString<T>(remap_it->second);
-            return {};
-        }
-        auto& remapped_key = remapped_res.value();
-        size_t indirection_levels {};
-        while( isBlackboardPointer(remapped_key) ) {
-            indirection_levels++;
-            remapped_key = stripBlackboardPointer(remapped_key);
-        }
-        std::string remapped_key_string = remapped_key.to_string();
-        for (size_t i=0; i<indirection_levels; i++) {
-            auto inner_val = config_.blackboard->getAny(remapped_key_string);
-            remapped_key_string = inner_val->cast<std::string>();
-        }
+        destination = convertFromString<T>(remap_it->second);
+        return {};
+    }
 
-        if (!config_.blackboard)
-        {
-            return nonstd::make_unexpected("getInput() trying to access a Blackboard(BB) entry, "
-                                           "but BB is invalid");
-        }
+    auto& remapped_key = remapped_res.value();
+    size_t indirection_levels {};
+    while( isBlackboardPointer(remapped_key) )
+    {
+        indirection_levels++;
+        remapped_key = stripBlackboardPointer(remapped_key);
+    }
 
-        const Any* val = config_.blackboard->getAny(remapped_key_string);
-        if (val && val->empty() == false)
-        {
-            if (std::is_same<T, std::string>::value == false && val->type() == typeid(std::string))
-            {
-                destination = convertFromString<T>(val->cast<std::string>());
-            }
-            else
-            {
-                destination = val->cast<T>();
-            }
-            return {};
-        }
+    if (!config_.blackboard)
+    {
+        throw LogicError("getInput() trying to access a Blackboard(BB) entry, but BB is invalid");
+    }
 
+    std::string remapped_key_string = remapped_key.to_string();
+
+    for (size_t i=0; i < indirection_levels; i++)
+    {
+        const auto& inner_val = config_.blackboard->get<std::string>(remapped_key_string);
+        if(!inner_val) { return nonstd::make_unexpected(inner_val.error()); }
+
+        remapped_key_string = inner_val.value();
+    }
+
+    const auto& expected_result = config_.blackboard->get<T>(remapped_key_string);
+
+    if(!expected_result)
+    {
         return nonstd::make_unexpected(StrCat("getInput() failed because it was unable to find the "
                                               "key [",
                                               key, "] remapped to [", remapped_key, "]"));
     }
-    catch (std::exception& err)
-    {
-        return nonstd::make_unexpected(err.what());
-    }
+
+    destination = expected_result.value(); 
+    return {};
 }
 
+//TODO: exceptions or unexpected?
 template <typename T>
 inline Result TreeNode::setOutput(const std::string& key, const T& value)
 {
     if (!config_.blackboard)
     {
-        return nonstd::make_unexpected("setOutput() failed: trying to access a "
-                                       "Blackboard(BB) entry, but BB is invalid");
+        throw LogicError("setOutput() failed: trying to access a ",
+                         "Blackboard(BB) entry, but BB is invalid");
     }
 
     auto remap_it = config_.output_ports.find(key);
     if (remap_it == config_.output_ports.end())
     {
-        return nonstd::make_unexpected(StrCat("setOutput() failed: NodeConfiguration::output_ports "
-                                              "does not "
-                                              "contain the key: [",
-                                              key, "]"));
+        throw LogicError("setOutput() failed: NodeConfiguration::output_ports does not ",
+                         "contain the key: [", key, "]");
     }
+
     StringView remapped_key = remap_it->second;
     if (remapped_key == "=")
     {
         remapped_key = key;
     }
+
     if (isBlackboardPointer(remapped_key))
     {
         remapped_key = stripBlackboardPointer(remapped_key);
@@ -271,7 +260,6 @@ inline Result TreeNode::setOutput(const std::string& key, const T& value)
     const auto& key_str = remapped_key.to_string();
 
     config_.blackboard->set(key_str, value);
-
     return {};
 }
 

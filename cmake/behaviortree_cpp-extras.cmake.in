@@ -1,0 +1,5 @@
+set(BEHAVIOR_TREE_CPP_ZMQ @ZMQ_FOUND@)
+
+if(${BEHAVIOR_TREE_CPP_ZMQ})
+    add_definitions(-DBEHAVIOR_TREE_CPP_ZMQ)
+endif()
