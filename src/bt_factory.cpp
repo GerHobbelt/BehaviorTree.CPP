@@ -202,6 +202,9 @@ void BehaviorTreeFactory::registerDefaultTypesConversions()
     registerTypeConverter<std::string, bool>(convertFromString<bool>);
     registerTypeConverter<std::string, NodeType>(convertFromString<NodeType>);
     registerTypeConverter<std::string, PortDirection>(convertFromString<PortDirection>);
+    registerTypeConverter<std::string, uint8_t>(convertFromString<uint8_t>);
+    registerTypeConverter<std::string, uint16_t>(convertFromString<uint16_t>);
+    registerTypeConverter<std::string, float>(convertFromString<float>);
 }
 
 Tree BehaviorTreeFactory::createTreeFromFile(const std::string &file_path,

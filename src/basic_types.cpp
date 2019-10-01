@@ -119,6 +119,24 @@ unsigned convertFromString<unsigned>(StringView str)
 }
 
 template <>
+uint8_t convertFromString<uint8_t>(StringView str)
+{
+    return static_cast<uint8_t>(std::stoul(str.data()));
+}
+
+template <>
+uint16_t convertFromString<uint16_t>(StringView str)
+{
+    return static_cast<uint16_t>(std::stoul(str.data()));
+}
+
+template <>
+float convertFromString<float>(StringView str)
+{
+    return std::stod(str.data());
+}
+
+template <>
 double convertFromString<double>(StringView str)
 {
     return std::stod(str.data());

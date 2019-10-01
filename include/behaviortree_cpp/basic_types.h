@@ -82,6 +82,15 @@ template <>
 unsigned convertFromString<unsigned>(StringView str);
 
 template <>
+uint8_t convertFromString<uint8_t>(StringView str);
+
+template <>
+uint16_t convertFromString<uint16_t>(StringView str);
+
+template <>
+float convertFromString<float>(StringView str);
+
+template <>
 double convertFromString<double>(StringView str);
 
 template <> // Integer numbers separated by the characted ";"
