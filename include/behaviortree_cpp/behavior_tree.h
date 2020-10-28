@@ -20,6 +20,7 @@
 #include "behaviortree_cpp/controls/fallback_node.h"
 #include "behaviortree_cpp/controls/sequence_node.h"
 #include "behaviortree_cpp/controls/sequence_star_node.h"
+#include "behaviortree_cpp/controls/HaltNode.hpp"
 
 #include "behaviortree_cpp/action_node.h"
 #include "behaviortree_cpp/condition_node.h"
@@ -32,11 +33,28 @@
 #include "behaviortree_cpp/actions/always_success_node.h"
 #include "behaviortree_cpp/actions/always_failure_node.h"
 #include "behaviortree_cpp/actions/set_blackboard_node.h"
+#include "behaviortree_cpp/actions/BasicMathNode.hpp"
+#include "behaviortree_cpp/actions/CheckKeyNode.hpp"
+#include "behaviortree_cpp/actions/ConcatenateStringsNode.hpp"
+#include "behaviortree_cpp/actions/GetKeyboardNode.hpp"
+#include "behaviortree_cpp/actions/InterpolateNode.hpp"
+#include "behaviortree_cpp/actions/OStreamNode.hpp"
+#include "behaviortree_cpp/actions/RandomizeValueNode.hpp"
+#include "behaviortree_cpp/actions/RandomizeSequenceNode.hpp"
+#include "behaviortree_cpp/actions/SubstringNode.hpp"
+#include "behaviortree_cpp/actions/WaitNode.hpp"
+
+#include "behaviortree_cpp/conditions/CheckBoolNode.hpp"
+#include "behaviortree_cpp/conditions/ComparisonNode.hpp"
 
 #include "behaviortree_cpp/decorators/force_success_node.h"
 #include "behaviortree_cpp/decorators/force_failure_node.h"
 #include "behaviortree_cpp/decorators/blackboard_precondition.h"
 #include "behaviortree_cpp/decorators/timeout_node.h"
+#include "behaviortree_cpp/decorators/CooldownNode.hpp"
+#include "behaviortree_cpp/decorators/LoopNode.hpp"
+#include "behaviortree_cpp/decorators/OnlyOnceNode.hpp"
+#include "behaviortree_cpp/decorators/WhileSuccessNode.hpp"
 
 namespace BT
 {

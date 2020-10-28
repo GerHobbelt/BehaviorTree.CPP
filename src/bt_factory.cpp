@@ -182,6 +182,32 @@ void BehaviorTreeFactory::registerDefaultNodes()
     registerNodeType<BlackboardPreconditionNode<double>>("BlackboardCheckDouble");
     registerNodeType<BlackboardPreconditionNode<std::string>>("BlackboardCheckString");
 
+    registerNodeType<HaltNode>("Interruptible");
+
+    registerNodeType<BasicMathNode<int>>("MathOperationInt");
+    registerNodeType<BasicMathNode<double>>("MathOperationFloat");
+    registerNodeType<CheckKeyNode>("CheckKey");
+    registerNodeType<ConcatenateStringsNode>("ConcatenateStrings");
+    registerNodeType<GetKeyboardNode>("GetKeyboard");
+    registerNodeType<InterpolateNode<double>>("InterpolateFloat");
+    registerNodeType<OStreamNode>("OStreamNode");
+    registerNodeType<RandomizeValueNode<int>>("RandomInteger");
+    registerNodeType<RandomizeValueNode<double>>("RandomFloat");
+    registerNodeType<RandomizeSequenceNode>("RandomSequenceValue");
+    registerNodeType<SubstringNode>("FindSubstrings");
+    registerNodeType<WaitNode<std::chrono::seconds>>("WaitSeconds");
+    registerNodeType<WaitNode<std::chrono::milliseconds>>("WaitMilliseconds");
+
+    registerNodeType<CheckBoolNode>("CheckBool");
+    registerNodeType<ComparisonNode<double>>("CompareNumbers");
+    registerNodeType<ComparisonNode<std::string>>("CompareStrings");
+
+    registerNodeType<CooldownNode<std::chrono::seconds>>("CooldownSeconds");
+    registerNodeType<CooldownNode<std::chrono::milliseconds>>("CooldownMilliseconds");
+    registerNodeType<LoopNode>("Loop");
+    registerNodeType<OnlyOnceNode>("OnlyOnce");
+    registerNodeType<WhileSuccessNode>("WhileSuccess");
+
     for( const auto& it: builders_)
     {
         builtin_IDs_.insert( it.first );
