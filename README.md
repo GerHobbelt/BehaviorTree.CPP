@@ -1,6 +1,7 @@
 ![License MIT](https://img.shields.io/dub/l/vibe-d.svg)
 ![Version](https://img.shields.io/badge/version-v3.0-green.svg)
 
+GitHub (Linux): ![Build and Release for ROS Kinetic & ROS Melodic](https://github.com/robotics-upo/Groot/workflows/Build%20and%20Release%20for%20ROS%20Kinetic%20&%20ROS%20Melodic/badge.svg)
 
 Travis (Linux): [![Build Status](https://travis-ci.org/BehaviorTree/BehaviorTree.CPP.svg?branch=master)](https://travis-ci.org/BehaviorTree/BehaviorTree.CPP)
 
