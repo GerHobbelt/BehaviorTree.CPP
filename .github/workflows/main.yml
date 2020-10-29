@@ -76,10 +76,11 @@ jobs:
         shell: bash
         run: |
           source /opt/ros/"$(rosversion -d)"/setup.bash
-          mkdir -p ~/catkin_ws/src && cd ~/catkin_ws && catkin_make
+          mkdir -p ~/catkin_ws/src && cd ~/catkin_ws 
           mkdir ./src/$REPO_NAME/
           cp -r $GITHUB_WORKSPACE/. ~/catkin_ws/src/$REPO_NAME
           mv ~/catkin_ws $GITHUB_WORKSPACE/
+          cd $GITHUB_WORKSPACE/catkin_ws && catkin_make
       # - name: Run wstool  
         # shell: bash
         # working-directory: catkin_ws
