@@ -16,6 +16,7 @@
 
 #include <condition_variable>
 #include <mutex>
+#include <cmath>
 #include "behaviortree_cpp/utils/signal.h"
 #include "behaviortree_cpp/exceptions.h"
 #include "behaviortree_cpp/basic_types.h"
