@@ -27,7 +27,7 @@ option(BUILD_TOOLS "Build commandline tools" ON)
 
 #############################################################
 # Find packages
-find_package(Threads REQUIRED)
+find_package(Threads)
 find_package(ZMQ)
 
 list(APPEND BEHAVIOR_TREE_EXTERNAL_LIBRARIES
@@ -168,7 +168,6 @@ list(APPEND BT_SOURCE
     )
 
 ######################################################
-set(CMAKE_DEBUG_POSTFIX "d")
 
 if (UNIX)
     list(APPEND BT_SOURCE src/shared_library_UNIX.cpp )
@@ -176,6 +175,7 @@ if (UNIX)
 endif()
 
 if (WIN32)
+    set(CMAKE_DEBUG_POSTFIX "d")
     list(APPEND BT_SOURCE src/shared_library_WIN.cpp )
     add_library(${BEHAVIOR_TREE_LIBRARY} STATIC ${BT_SOURCE} )
 endif()
@@ -186,9 +186,9 @@ target_link_libraries(${BEHAVIOR_TREE_LIBRARY} PUBLIC
 target_compile_definitions(${BEHAVIOR_TREE_LIBRARY} PRIVATE $<$<CONFIG:Debug>:TINYXML2_DEBUG>)
 
 target_include_directories(${BEHAVIOR_TREE_LIBRARY} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/3rdparty>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/3rdparty>
     ${BUILD_TOOL_INCLUDE_DIRS})
 
 if( ZMQ_FOUND )
