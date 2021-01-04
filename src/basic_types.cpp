@@ -113,6 +113,12 @@ int convertFromString<int>(StringView str)
 }
 
 template <>
+int64_t convertFromString<int64_t>(StringView str)
+{
+    return  static_cast<int64_t>(std::stol(str.data()));
+}
+
+template <>
 unsigned convertFromString<unsigned>(StringView str)
 {
     return unsigned(std::stoul(str.data()));

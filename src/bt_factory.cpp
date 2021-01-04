@@ -221,6 +221,7 @@ void BehaviorTreeFactory::registerDefaultTypesConversions()
     registerTypeConverter<std::string, StringView>(convertFromString<StringView>);
     registerTypeConverter<std::string, const char*>(convertFromString<const char*>);
     registerTypeConverter<std::string, int>(convertFromString<int>);
+    registerTypeConverter<std::string, int64_t>(convertFromString<int64_t>);
     registerTypeConverter<std::string, unsigned>(convertFromString<unsigned>);
     registerTypeConverter<std::string, double>(convertFromString<double>);
     registerTypeConverter<std::string, std::vector<int>>(convertFromString<std::vector<int>>);

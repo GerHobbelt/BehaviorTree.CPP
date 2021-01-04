@@ -79,6 +79,9 @@ template <>
 int convertFromString<int>(StringView str);
 
 template <>
+int64_t convertFromString<int64_t>(StringView str);
+
+template <>
 unsigned convertFromString<unsigned>(StringView str);
 
 template <>
