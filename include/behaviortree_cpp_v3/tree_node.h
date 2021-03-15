@@ -258,7 +258,7 @@ inline Result TreeNode::setOutput(const std::string& key, const T& value)
     {
         remapped_key = stripBlackboardPointer(remapped_key);
     }
-    const auto& key_str = remapped_key.to_string();
+    const auto& key_str = nonstd::to_string(remapped_key);
 
     config_.blackboard->set(key_str, value);
     return {};

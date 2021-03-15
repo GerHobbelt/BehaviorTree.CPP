@@ -1,6 +1,7 @@
 #include "behaviortree_cpp_v3/basic_types.h"
 #include <cstdlib>
 #include <cstring>
+#include <clocale>
 
 namespace BT
 {
@@ -103,7 +104,7 @@ std::string convertFromString<std::string>(StringView str)
 template <>
 const char* convertFromString<const char*>(StringView str)
 {
-    return str.to_string().c_str();
+    return nonstd::to_string(str).c_str();
 }
 
 template <>
@@ -148,10 +149,10 @@ double convertFromString<double>(StringView str)
     // see issue #120
     // http://quick-bench.com/DWaXRWnxtxvwIMvZy2DxVPEKJnE
 
-    const auto old_locale = std::setlocale(LC_NUMERIC,nullptr);
-    std::setlocale(LC_NUMERIC,"C");
+    const auto old_locale = setlocale(LC_NUMERIC,nullptr);
+    setlocale(LC_NUMERIC,"C");
     double val = std::stod(str.data());
-    std::setlocale(LC_NUMERIC,old_locale);
+    setlocale(LC_NUMERIC,old_locale);
     return val;
 }
 
@@ -228,7 +229,7 @@ NodeStatus convertFromString<NodeStatus>(StringView str)
     if( str == "RUNNING" ) return NodeStatus::RUNNING;
     if( str == "SUCCESS" ) return NodeStatus::SUCCESS;
     if( str == "FAILURE" ) return NodeStatus::FAILURE;
-    throw RuntimeError(std::string("Cannot convert this to NodeStatus: ") + str.to_string() );
+    throw RuntimeError(std::string("Cannot convert this to NodeStatus: ") + nonstd::to_string(str) );
 }
 
 template <>
@@ -300,12 +301,12 @@ const std::type_info* PortInfo::type() const
 }
 void PortInfo::setDescription(StringView description)
 {
-    description_ = description.to_string();
+    description_ = nonstd::to_string(description);
 }
 
 void PortInfo::setDefaultValue(StringView default_value_as_string)
 {
-    default_value_ = default_value_as_string.to_string();
+    default_value_ = nonstd::to_string(default_value_as_string);
 }
 
 const std::string &PortInfo::description() const
