@@ -1,5 +1,5 @@
 /* Copyright (C) 2015-2018 Michele Colledanchise -  All Rights Reserved
-*  Copyright (C) 2018-2019 Davide Faconti, Eurecat -  All Rights Reserved
+*  Copyright (C) 2018-2020 Davide Faconti, Eurecat -  All Rights Reserved
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
 *   to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -82,8 +82,6 @@ class TreeNode
 
     NodeStatus status() const;
 
-    void setStatus(NodeStatus new_status);
-
     /// Name of the instance, not the type
     const std::string& name() const;
 
@@ -149,6 +147,9 @@ class TreeNode
     virtual BT::NodeStatus tick() = 0;
 
     friend class BehaviorTreeFactory;
+    friend class DecoratorNode;
+    friend class ControlNode;
+    friend struct Tree;
 
     // Only BehaviorTreeFactory should call this
     void setRegistrationID(StringView ID)
@@ -157,6 +158,8 @@ class TreeNode
     }
 
     void modifyPortsRemapping(const PortsRemapping& new_remapping);
+
+    void setStatus(NodeStatus new_status);
 
   private:
     const std::string name_;

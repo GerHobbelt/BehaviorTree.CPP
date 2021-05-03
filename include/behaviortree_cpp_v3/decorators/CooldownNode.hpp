@@ -47,7 +47,7 @@ class CooldownNode final : public BT::DecoratorNode
                         {
                             if(!_aborted)
                             {
-                                child_node_->setStatus(BT::NodeStatus::IDLE);
+                                haltChild();
                                 in_cooldown_ = false;
                             }
                         });

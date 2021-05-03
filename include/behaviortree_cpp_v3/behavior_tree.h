@@ -1,5 +1,5 @@
 /* Copyright (C) 2015-2018 Michele Colledanchise -  All Rights Reserved
- * Copyright (C) 2018-2019 Davide Faconti, Eurecat -  All Rights Reserved
+ * Copyright (C) 2018-2020 Davide Faconti, Eurecat -  All Rights Reserved
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
 *   to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -71,11 +71,6 @@ void applyRecursiveVisitor(TreeNode* root_node, const std::function<void(TreeNod
  * Debug function to print on screen the hierarchy of the tree.
  */
 void printTreeRecursively(const TreeNode* root_node);
-
-/// Invoke AsyncActionNode::stopAndJoinThread() to the entire tree,
-/// when needed.
-void haltAllActions(TreeNode* root_node);
-
 
 typedef std::vector<std::pair<uint16_t, uint8_t>> SerializedTreeStatus;
 

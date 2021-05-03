@@ -1,5 +1,5 @@
 ![License MIT](https://img.shields.io/dub/l/vibe-d.svg)
-![Version](https://img.shields.io/badge/version-v3.1-green.svg)
+![Version](https://img.shields.io/badge/version-v3.3-green.svg)
 
 GitHub (Linux): ![Build and Release for ROS Kinetic & ROS Melodic](https://github.com/robotics-upo/Groot/workflows/Build%20and%20Release%20for%20ROS%20Kinetic%20&%20ROS%20Melodic/badge.svg)
 
@@ -12,7 +12,7 @@ Question? [![Join the chat at https://gitter.im/BehaviorTree-ROS/Lobby](https://
 
 # About BehaviorTree.CPP
 
-This  __C++__ library provides a framework to create BehaviorTrees.
+This  __C++ 14__ library provides a framework to create BehaviorTrees.
 It was designed to be flexible, easy to use, reactive and fast.
 
 Even if our main use-case is __robotics__, you can use this library to build
@@ -44,7 +44,7 @@ You can learn about the main concepts, the API and the tutorials here: https://w
 To find more details about the conceptual ideas that make this implementation different from others, you can read the [final deliverable of the project MOOD2Be](https://github.com/BehaviorTree/BehaviorTree.CPP/blob/master/MOOD2Be_final_report.pdf).
 
 
-# About version 3.X
+# About version 3.3 and above
 
 The main goal of this project is to create a Behavior Tree implementation
 that uses the principles of Model Driven Development to separate the role 
@@ -58,7 +58,7 @@ In practice, this means that:
 - To build a Behavior Tree out of TreeNodes, the Behavior Designer must 
 not need to read nor modify the source code of a given TreeNode.
 
-Version __3.x__ of this library introduces some dramatic changes in the API, but 
+Version __3.3+__ of this library introduces some dramatic changes in the API, but 
 it was necessary to reach this goal.
 
 If you used version 2.X in the past, you can 
@@ -72,28 +72,50 @@ Editing a BehaviorTree is as simple as editing a XML file in your favourite text
 If you are looking for a more fancy graphical user interface (and I know you do) check 
 [Groot](https://github.com/BehaviorTree/Groot) out.
 
-![Groot screenshot](groot-screenshot.png)
+![Groot screenshot](docs/groot-screenshot.png)
 
 ## Watch Groot and BehaviorTree.CPP in action
 
 Click on the following image to see a short video of how the C++ library and
 the graphic user interface are used to design and monitor a Behavior Tree.
 
-[![MOOD2Be](video_MOOD2Be.png)](https://vimeo.com/304651183)
+[![MOOD2Be](docs/video_MOOD2Be.png)](https://vimeo.com/304651183)
 
-# How to compile
+# How to compile (plain old cmake
 
-On Ubuntu, you must install the following dependencies:
+On Ubuntu, you are encourage to install the following dependencies:
 
-     sudo apt-get install libzmq3-dev libdw-dev
+     sudo apt-get install libzmq3-dev libboost-dev
      
-Any other dependency is already included in the __3rdparty__ folder.
+Other dependency is already included in the __3rdparty__ folder.
 
-## Catkin and ROS users
+To compile and install the library, from the BehaviorTree.CPP folder, execute:
+
+     mkdir build; cd build
+     cmake ..
+     make
+     sudo make install
+
+Your typical **CMakeLists.txt** file will look like this:
+
+```cmake
+cmake_minimum_required(VERSION 3.5)
+
+project(hello_BT)
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+find_package(BehaviorTreeV3)
+
+add_executable(${PROJECT_NAME} "hello_BT.cpp")
+target_link_libraries(${PROJECT_NAME} BT::behaviortree_cpp_v3)
+```
+
+## ROS1 or ROS2 users (Catkin/Ament)
 
 You can easily install the package with the command
 
-      sudo apt-get install ros-$ROS_DISTRO-behaviortree-cpp
+      sudo apt-get install ros-$ROS_DISTRO-behaviortree-cpp-v3
       
 If you want to compile it with catkin, you __must__ include this package 
 to your catkin workspace.
@@ -107,7 +129,7 @@ This software is one of the main components of [MOOD2Be](https://eurecat.org/en/
 which is one of the six **Integrated Technical Projects (ITPs)** selected from the
 [RobMoSys first open call](https://robmosys.eu/itp/). Therefore, MOOD2Be has been supported by the European Horizon2020 project RobMoSys. This software is RobMoSys conformant. 
 
-![RobMoSys Conformant](./robmosys_conformant_logo.png)
+![RobMoSys Conformant](docs/robmosys_conformant_logo.png)
 
 # Further readings
 
@@ -130,7 +152,7 @@ The Preprint version (free) is available here: https://arxiv.org/abs/1709.00084
 The MIT License (MIT)
 
 Copyright (c) 2014-2018 Michele Colledanchise
-Copyright (c) 2018-2019 Davide Faconti
+Copyright (c) 2018-2020 Davide Faconti
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

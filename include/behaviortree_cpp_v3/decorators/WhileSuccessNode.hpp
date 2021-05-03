@@ -21,7 +21,7 @@ class WhileSuccessNode final : public BT::DecoratorNode
             if(child_status == BT::NodeStatus::FAILURE)
             {
                 setStatus(BT::NodeStatus::FAILURE);
-                child_node_->setStatus(BT::NodeStatus::IDLE);
+                haltChild();
             }
 
             return status();
