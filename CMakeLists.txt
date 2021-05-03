@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5.1) # version on Ubuntu Xenial
-project(behavior_tree_core VERSION 3.3.0)
+project(behavior_tree_core)
 
 #---- Add the subdirectory cmake ----
 set(CMAKE_CONFIG_PATH ${CMAKE_MODULE_PATH}  "${CMAKE_CURRENT_LIST_DIR}/cmake")
