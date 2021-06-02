@@ -37,9 +37,9 @@ void Blackboard::setPortInfo(std::string key, const PortInfo& info)
     }
 }
 
-void Blackboard::addSubtreeRemapping(std::string internal, std::string external)
+void Blackboard::addSubtreeRemapping(StringView internal, StringView external)
 {
-    internal_to_external_.insert( {std::move(internal), std::move(external)} );
+    internal_to_external_.insert( {static_cast<std::string>(internal), static_cast<std::string>(external)} );
 }
 
 void Blackboard::setTypesConverter(const TypesConverter& types_converter)
@@ -102,6 +102,17 @@ Optional<Entry> Blackboard::getEntry(const std::string& key) const
 
     auto it = storage_.find(key);
     return ( it == storage_.end()) ? nonstd::make_unexpected(StrCat("Key ", key, " not found")) :  Optional<Entry>(it->second);
+}
+
+std::vector<StringView> Blackboard::getKeys() const
+{
+    std::vector<StringView> out;
+    out.reserve( storage_.size() );
+    for(const auto& entry_it: storage_)
+    {
+        out.push_back( entry_it.first );
+    }
+    return out;
 }
 
 }

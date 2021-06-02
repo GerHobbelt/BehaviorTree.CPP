@@ -36,4 +36,4 @@ target_compile_definitions(movebase_node_dyn PRIVATE  BT_PLUGIN_EXPORT )
 set_target_properties(movebase_node_dyn PROPERTIES LIBRARY_OUTPUT_DIRECTORY
     ${BEHAVIOR_TREE_BIN_DESTINATION} )
 
- 
+

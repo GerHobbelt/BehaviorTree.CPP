@@ -22,6 +22,7 @@
 #include "behaviortree_cpp_v3/controls/sequence_star_node.h"
 #include "behaviortree_cpp_v3/controls/switch_node.h"
 #include "behaviortree_cpp_v3/controls/HaltNode.hpp"
+#include "behaviortree_cpp_v3/controls/manual_node.h"
 
 #include "behaviortree_cpp_v3/action_node.h"
 #include "behaviortree_cpp_v3/condition_node.h"
@@ -56,6 +57,7 @@
 #include "behaviortree_cpp_v3/decorators/LoopNode.hpp"
 #include "behaviortree_cpp_v3/decorators/OnlyOnceNode.hpp"
 #include "behaviortree_cpp_v3/decorators/WhileSuccessNode.hpp"
+
 
 namespace BT
 {
@@ -94,7 +96,7 @@ inline NodeType getType()
     if( std::is_base_of<ActionNodeBase, T>::value )        return NodeType::ACTION;
     if( std::is_base_of<ConditionNode, T>::value )         return NodeType::CONDITION;
     if( std::is_base_of<SubtreeNode, T>::value )           return NodeType::SUBTREE;
-    if( std::is_base_of<SubtreeWrapperNode, T>::value )    return NodeType::SUBTREE;
+    if( std::is_base_of<SubtreePlusNode, T>::value )       return NodeType::SUBTREE;
     if( std::is_base_of<DecoratorNode, T>::value )         return NodeType::DECORATOR;
     if( std::is_base_of<ControlNode, T>::value )           return NodeType::CONTROL;
     return NodeType::UNDEFINED;

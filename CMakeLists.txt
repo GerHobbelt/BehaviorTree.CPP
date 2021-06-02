@@ -108,8 +108,9 @@ elseif(BUILD_UNIT_TESTS)
     find_package(GTest)
 
     if(NOT GTEST_FOUND)
-        message(WARNING " GTest missing!")
-    endif(NOT GTEST_FOUND)
+        message(WARNING " GTest missing! You may want to follow these instructions:")
+        message(WARNING " https://gist.github.com/Cartexius/4c437c084d6e388288201aadf9c8cdd5")
+    endif()
 
 endif()
 if(NOT MSVC)
@@ -185,6 +186,17 @@ list(APPEND BT_SOURCE
     3rdparty/minitrace/minitrace.cpp
     )
 
+find_package(Curses QUIET)
+
+if(CURSES_FOUND)
+    list(APPEND BT_SOURCE
+        src/controls/manual_node.cpp
+        )
+    list(APPEND BEHAVIOR_TREE_EXTERNAL_LIBRARIES ${CURSES_LIBRARIES})
+    add_definitions(-DNCURSES_FOUND)
+endif()
+
+
 ######################################################
 
 if (UNIX)
@@ -249,7 +261,7 @@ INSTALL( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
     FILES_MATCHING PATTERN "*.h*")
 
 install(EXPORT BehaviorTreeV3Config
-    DESTINATION "${BEHAVIOR_TREE_LIB_DESTINATION}/$BehaviorTreeV3/cmake"
+    DESTINATION "${BEHAVIOR_TREE_LIB_DESTINATION}/BehaviorTreeV3/cmake"
     NAMESPACE BT::)
 
 export(TARGETS ${PROJECT_NAME}

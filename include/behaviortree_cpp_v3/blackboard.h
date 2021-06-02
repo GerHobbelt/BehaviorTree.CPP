@@ -102,9 +102,11 @@ class Blackboard
 
     void setTypesConverter(const TypesConverter& types_converter);
 
-    void addSubtreeRemapping(std::string internal, std::string external);
+    void addSubtreeRemapping(StringView internal, StringView external);
 
     void debugMessage() const;
+
+    std::vector<StringView> getKeys() const;
 
   private:
     Optional<Entry> getEntry(const std::string& key) const;

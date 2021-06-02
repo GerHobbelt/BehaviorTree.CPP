@@ -131,7 +131,7 @@ std::vector<std::string> getCatkinLibraryPaths()
             splitString(env_catkin_prefix_paths, os_pathsep);
         for (BT::StringView catkin_prefix_path : catkin_prefix_paths)
         {
-            filesystem::path path(catkin_prefix_path.to_string());
+            filesystem::path path(static_cast<std::string>(catkin_prefix_path));
             filesystem::path lib("lib");
             lib_paths.push_back((path / lib).str());
         }
@@ -242,7 +242,7 @@ void BehaviorTreeFactory::registerDefaultNodes()
     registerNodeType<SetBlackboard>("SetBlackboard");
 
     registerNodeType<SubtreeNode>("SubTree");
-    registerNodeType<SubtreeWrapperNode>("SubTreeWrapper");
+    registerNodeType<SubtreePlusNode>("SubTreePlus");
 
     registerNodeType<BlackboardPreconditionNode<int>>("BlackboardCheckInt");
     registerNodeType<BlackboardPreconditionNode<double>>("BlackboardCheckDouble");
@@ -253,6 +253,10 @@ void BehaviorTreeFactory::registerDefaultNodes()
     registerNodeType<SwitchNode<4>>("Switch4");
     registerNodeType<SwitchNode<5>>("Switch5");
     registerNodeType<SwitchNode<6>>("Switch6");
+
+#ifdef NCURSES_FOUND
+    registerNodeType<ManualSelectorNode>("ManualSelector");
+#endif
 
     registerNodeType<HaltNode>("Interruptible");
 

@@ -149,7 +149,7 @@ class TreeNode
     friend class BehaviorTreeFactory;
     friend class DecoratorNode;
     friend class ControlNode;
-    friend struct Tree;
+    friend class Tree;
 
     // Only BehaviorTreeFactory should call this
     void setRegistrationID(StringView ID)
@@ -261,9 +261,8 @@ inline Result TreeNode::setOutput(const std::string& key, const T& value)
     {
         remapped_key = stripBlackboardPointer(remapped_key);
     }
-    const auto& key_str = nonstd::to_string(remapped_key);
+    config_.blackboard->set(static_cast<std::string>(remapped_key), value);
 
-    config_.blackboard->set(key_str, value);
     return {};
 }
 
