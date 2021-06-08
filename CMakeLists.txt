@@ -170,6 +170,7 @@ list(APPEND BT_SOURCE
     src/decorators/subtree_node.cpp
     src/decorators/timeout_node.cpp
 
+    src/controls/if_then_else_node.cpp
     src/controls/fallback_node.cpp
     src/controls/parallel_node.cpp
     src/controls/reactive_sequence.cpp
@@ -177,6 +178,7 @@ list(APPEND BT_SOURCE
     src/controls/sequence_node.cpp
     src/controls/sequence_star_node.cpp
     src/controls/switch_node.cpp
+    src/controls/while_do_else_node.cpp
 
     src/loggers/bt_cout_logger.cpp
     src/loggers/bt_file_logger.cpp

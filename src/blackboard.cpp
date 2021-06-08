@@ -106,6 +106,9 @@ Optional<Entry> Blackboard::getEntry(const std::string& key) const
 
 std::vector<StringView> Blackboard::getKeys() const
 {
+    if( storage_.empty() ){
+        return {};    
+    }
     std::vector<StringView> out;
     out.reserve( storage_.size() );
     for(const auto& entry_it: storage_)
