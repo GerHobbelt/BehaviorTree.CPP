@@ -72,8 +72,8 @@ T convertFromString(StringView /*str*/)
 template <>
 std::string convertFromString<std::string>(StringView str);
 
-template <>
-const char* convertFromString<const char*>(StringView str);
+// template <>
+// const char* convertFromString<const char*>(StringView str);
 
 template <>
 int convertFromString<int>(StringView str);

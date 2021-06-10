@@ -233,6 +233,7 @@ void BehaviorTreeFactory::registerDefaultNodes()
 
     registerNodeType<InverterNode>("Inverter");
     registerNodeType<RetryNode>("RetryUntilSuccesful");
+    registerNodeType<KeepRunningUntilFailureNode>("KeepRunningUntilFailure");
     registerNodeType<RepeatNode>("Repeat");
     registerNodeType<TimeoutNode>("Timeout");
 
