@@ -266,7 +266,12 @@ void BehaviorTreeFactory::registerDefaultNodes()
     registerNodeType<BasicMathNode<int>>("MathOperationInt");
     registerNodeType<BasicMathNode<double>>("MathOperationFloat");
     registerNodeType<CheckKeyNode>("CheckKey");
-    registerNodeType<ConcatenateStringsNode>("ConcatenateStrings");
+    registerNodeType<ConcatenateStringsNode<2>>("ConcatenateStrings");
+    registerNodeType<ConcatenateStringsNode<3>>("Concatenate3Strings");
+    registerNodeType<ConcatenateStringsNode<4>>("Concatenate4Strings");
+    registerNodeType<ConcatenateStringsNode<5>>("Concatenate5Strings");
+    registerNodeType<ConcatenateStringsNode<6>>("Concatenate6Strings");
+    registerNodeType<ConcatenateStringsNode<7>>("Concatenate7Strings");
     registerNodeType<GetKeyboardNode>("GetKeyboard");
     registerNodeType<InterpolateNode<double>>("InterpolateFloat");
     registerNodeType<OStreamNode>("OStreamNode");
