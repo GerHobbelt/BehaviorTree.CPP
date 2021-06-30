@@ -80,16 +80,6 @@ jobs:
           mkdir ./src/$REPO_NAME/
           cp -r $GITHUB_WORKSPACE/. ~/catkin_ws/src/$REPO_NAME
           mv ~/catkin_ws $GITHUB_WORKSPACE/
-      # - name: Run wstool  
-        # shell: bash
-        # working-directory: catkin_ws
-        # env:
-          # GITHUB_USER: HaruBotAccess
-          # GITHUB_PAT: ${{ secrets.CI_TOKEN }}
-        # run: '(test -f src/$REPO_NAME/*.rosinstall && 
-          # echo "https://$GITHUB_USER:$GITHUB_PAT@github.com" >> ~/.git-credentials &&
-          # git config --global credential.helper store &&
-          # wstool init ./src/ ./src/$REPO_NAME/$REPO_NAME.rosinstall && echo "wstool dependencies updated") || echo "No rosinstall file found, skipping wstool step"'
 
       # Update rosdep
       - name: Update rosdep
@@ -127,14 +117,13 @@ jobs:
           name: ${{ matrix.ros_distribution }}
           path: ${{ github.workspace }}/debians/*.deb
 
-      # Generate CHANGELOG for Release body
-      - name: Generate CHANGELOG for Release body
+      # Copy CHANGELOG for Release body
+      - name: Copy CHANGELOG for Release body
         working-directory: catkin_ws
         run: |
           source /opt/ros/"$(rosversion -d)"/setup.bash
           cd ./src/$REPO_NAME
-          catkin_generate_changelog -y --all --skip-contributors --skip-merges --print-root > ./changelog.rst
-          mv ./changelog.rst $GITHUB_WORKSPACE
+          cp ./CHANGELOG.rst $GITHUB_WORKSPACE/changelog.rst
         shell: bash
 
       #Upload the changelog file as an artifact
