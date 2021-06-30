@@ -132,6 +132,12 @@ uint16_t convertFromString<uint16_t>(StringView str)
 }
 
 template <>
+uint64_t convertFromString<uint64_t>(StringView str)
+{
+    return static_cast<uint64_t>(std::stoul(str.data()));
+}
+
+template <>
 float convertFromString<float>(StringView str)
 {
     return std::stod(str.data());

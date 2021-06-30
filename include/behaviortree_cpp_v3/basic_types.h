@@ -91,6 +91,9 @@ template <>
 uint16_t convertFromString<uint16_t>(StringView str);
 
 template <>
+uint64_t convertFromString<uint64_t>(StringView str);
+
+template <>
 float convertFromString<float>(StringView str);
 
 template <>

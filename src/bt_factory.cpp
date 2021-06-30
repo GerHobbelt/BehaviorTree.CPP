@@ -315,6 +315,7 @@ void BehaviorTreeFactory::registerDefaultTypesConversions()
     registerTypeConverter<std::string, PortDirection>(convertFromString<PortDirection>);
     registerTypeConverter<std::string, uint8_t>(convertFromString<uint8_t>);
     registerTypeConverter<std::string, uint16_t>(convertFromString<uint16_t>);
+    registerTypeConverter<std::string, uint64_t>(convertFromString<uint64_t>);
     registerTypeConverter<std::string, float>(convertFromString<float>);
 }
 
