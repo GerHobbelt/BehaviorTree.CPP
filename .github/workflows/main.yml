@@ -114,21 +114,21 @@ jobs:
           path: ${{ github.workspace }}/debians/*.deb
 
       # Copy CHANGELOG for Release body
-      - name: Copy CHANGELOG for Release body
-        working-directory: catkin_ws
-        run: |
-          source /opt/ros/"$(rosversion -d)"/setup.bash
-          cd ./src/$REPO_NAME
-          catkin_generate_changelog -y --all --skip-contributors --skip-merges --print-root > ./changelog.rst
-          mv ./changelog.rst $GITHUB_WORKSPACE
-        shell: bash
+      # - name: Copy CHANGELOG for Release body
+      #   working-directory: catkin_ws
+      #   run: |
+      #     source /opt/ros/"$(rosversion -d)"/setup.bash
+      #     cd ./src/$REPO_NAME
+      #     catkin_generate_changelog -y --all --skip-contributors --skip-merges --print-root > ./changelog.rst
+      #     mv ./changelog.rst $GITHUB_WORKSPACE
+      #   shell: bash
 
       #Upload the changelog file as an artifact
-      - uses: actions/upload-artifact@v2 #https://github.com/marketplace/actions/upload-a-build-artifact
-        name: Upload Changelog artifact
-        with:
-          name: changelog
-          path: ${{ github.workspace }}/changelog.rst ##It's uploaded as a zip file
+      # - uses: actions/upload-artifact@v2 #https://github.com/marketplace/actions/upload-a-build-artifact
+      #   name: Upload Changelog artifact
+      #   with:
+      #     name: changelog
+      #     path: ${{ github.workspace }}/changelog.rst ##It's uploaded as a zip file
 
       - uses: actions/upload-artifact@v2 #https://github.com/marketplace/actions/upload-a-build-artifact
         name: Upload version artifact
@@ -169,7 +169,7 @@ jobs:
         with:
           tag_name: ${{ steps.package_version.outputs.version }}
           release_name: Release ${{ steps.package_version.outputs.version }}
-          body_path: ${{ github.workspace }}/changelog/changelog.rst
+          # body_path: ${{ github.workspace }}/changelog/changelog.rst
           draft: false
           prerelease: false
 
