@@ -119,7 +119,7 @@ jobs:
         run: |
           source /opt/ros/"$(rosversion -d)"/setup.bash
           cd ./src/$REPO_NAME
-          cp ./CHANGELOG.rst $GITHUB_WORKSPACE/changelog.rst
+          catkin_generate_changelog -y --all --skip-contributors --skip-merges --print-root > ./changelog.rst
         shell: bash
 
       #Upload the changelog file as an artifact
