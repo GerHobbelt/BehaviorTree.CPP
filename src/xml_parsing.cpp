@@ -496,6 +496,14 @@ TreeNode::Ptr XMLParser::Pimpl::createNodeFromXML(const XMLElement *element,
         for (const XMLAttribute* att = element->FirstAttribute(); att; att = att->Next())
         {
             const std::string attribute_name = att->Name();
+            // Backward compatibility with Parallel node
+            // Change old port to new ones keeping the same functionality
+            if (ID == "Parallel" && attribute_name == "threshold")
+            {
+                port_remap["failure_threshold"] = att->Value();
+                port_remap["success_threshold"] = att->Value();
+                continue;
+            }
             if (attribute_name != "ID" && attribute_name != "name")
             {
                 port_remap[attribute_name] = att->Value();
