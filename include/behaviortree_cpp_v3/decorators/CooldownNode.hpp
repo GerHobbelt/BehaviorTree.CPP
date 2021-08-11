@@ -64,9 +64,9 @@ class CooldownNode final : public BT::DecoratorNode
         }
 
     private:
-        static BT::TimerQueue& timer()
+        static BT::TimerQueue<>& timer()
         {
-            static BT::TimerQueue timer_queue;
+            static BT::TimerQueue<> timer_queue;
             return timer_queue;
         }
 

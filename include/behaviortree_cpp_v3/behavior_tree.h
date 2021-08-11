@@ -56,6 +56,7 @@
 #include "behaviortree_cpp_v3/decorators/keep_running_until_failure_node.h"
 #include "behaviortree_cpp_v3/decorators/blackboard_precondition.h"
 #include "behaviortree_cpp_v3/decorators/timeout_node.h"
+#include "behaviortree_cpp_v3/decorators/delay_node.h"
 #include "behaviortree_cpp_v3/decorators/CooldownNode.hpp"
 #include "behaviortree_cpp_v3/decorators/LoopNode.hpp"
 #include "behaviortree_cpp_v3/decorators/OnlyOnceNode.hpp"
