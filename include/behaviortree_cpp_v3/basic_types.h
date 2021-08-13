@@ -265,6 +265,9 @@ std::pair<std::string,PortInfo> CreatePort(PortDirection direction,
                                            StringView name,
                                            StringView description = {})
 {
+    // Don't allow to create "ID" and "name" ports
+    if (name == "name" || name == "ID") { throw std::runtime_error {"Reserved port keys: \"name\" or \"ID\"! Cannot create port!"}; }
+
     std::pair<std::string,PortInfo> out;
 
     if( std::is_same<T, void>::value)
