@@ -11,6 +11,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+else()
+    add_definitions(-Wpedantic)
 endif()
 
 #---- Include boost to add coroutines ----
@@ -239,7 +241,6 @@ if( ZMQ_FOUND )
 endif()
 
 if(MSVC)
-    target_compile_options(${BEHAVIOR_TREE_LIBRARY} PRIVATE /W3 /WX)
 else()
     target_compile_options(${BEHAVIOR_TREE_LIBRARY} PRIVATE
         -Wall -Wextra -Werror=return-type -Wfatal-errors)
