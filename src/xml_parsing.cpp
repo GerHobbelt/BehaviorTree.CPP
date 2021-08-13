@@ -273,6 +273,11 @@ void VerifyXML(const std::string& xml_text,
     recursiveStep = [&](const XMLElement* node) {
         const int children_count = ChildrenCount(node);
         const char* name = node->Name();
+
+        // Backward compatibility with RetryUntilSuccessful node
+        // Change node ID to fix typo
+        if (StrEqual(name,"RetryUntilSuccesful")) { name = "RetryUntilSuccessful"; }
+
         if (StrEqual(name, "Decorator"))
         {
             if (children_count != 1)
@@ -477,6 +482,10 @@ TreeNode::Ptr XMLParser::Pimpl::createNodeFromXML(const XMLElement *element,
         ID = element_name;
     }
 
+    // Backward compatibility with RetryUntilSuccessful node
+    // Change node ID to fix typo
+    if (ID == "RetryUntilSuccesful") { ID = "RetryUntilSuccessful"; }
+
     const char* attr_alias = element->Attribute("name");
     if (attr_alias)
     {
@@ -503,7 +512,10 @@ TreeNode::Ptr XMLParser::Pimpl::createNodeFromXML(const XMLElement *element,
             // Change old port to new ones keeping the same functionality
             if (ID == "Parallel" && attribute_name == "threshold")
             {
-                port_remap["failure_threshold"] = att->Value();
+                int child_cnt = 0;
+                for(auto child = element->FirstChildElement(); child != NULL; child = child->NextSiblingElement()) { child_cnt++; }
+
+                port_remap["failure_threshold"] = std::to_string(child_cnt);
                 port_remap["success_threshold"] = att->Value();
                 continue;
             }

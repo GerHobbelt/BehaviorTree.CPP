@@ -232,8 +232,7 @@ void BehaviorTreeFactory::registerDefaultNodes()
     registerNodeType<WhileDoElseNode>("WhileDoElse");
 
     registerNodeType<InverterNode>("Inverter");
-    registerNodeType<RetryNode>("RetryUntilSuccesful"); //typo but back compatibility
-    registerNodeType<RetryNode>("RetryUntilSuccessful"); // correct one
+    registerNodeType<RetryNode>("RetryUntilSuccessful");
     registerNodeType<KeepRunningUntilFailureNode>("KeepRunningUntilFailure");
     registerNodeType<RepeatNode>("Repeat");
     registerNodeType<TimeoutNode<>>("Timeout");
