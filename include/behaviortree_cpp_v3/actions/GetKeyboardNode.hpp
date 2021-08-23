@@ -6,10 +6,10 @@
 
 namespace BT
 {
-class GetKeyboardNode final : public BT::SyncActionNode
+class GetKeyboardNode final : public BT::ActionNodeBase
 {
     public:
-        using BT::SyncActionNode::SyncActionNode;
+        using BT::ActionNodeBase::ActionNodeBase;
         ~GetKeyboardNode() = default;
 
         static BT::PortsList providedPorts()
@@ -30,6 +30,7 @@ class GetKeyboardNode final : public BT::SyncActionNode
             return BT::NodeStatus::SUCCESS;
         }
 
+        virtual void halt() override { setStatus(BT::NodeStatus::IDLE); }
 };
 
 }

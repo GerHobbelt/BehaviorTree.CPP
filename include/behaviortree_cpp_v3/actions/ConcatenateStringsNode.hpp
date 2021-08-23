@@ -31,7 +31,6 @@ class ConcatenateStringsNode final : public BT::SyncActionNode
 
         virtual BT::NodeStatus tick() override
         {
-            setStatus(BT::NodeStatus::RUNNING);
             const auto& first  = getInput<std::string>("first");
             const auto& second = getInput<std::string>("second");
 

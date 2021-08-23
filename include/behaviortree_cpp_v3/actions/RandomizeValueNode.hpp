@@ -24,7 +24,6 @@ class RandomizeValueNode final : public BT::SyncActionNode
 
         virtual BT::NodeStatus tick() override
         {
-            setStatus(BT::NodeStatus::RUNNING);
             const auto& min = getInput<T>("min");
             const auto& max = getInput<T>("max");
 

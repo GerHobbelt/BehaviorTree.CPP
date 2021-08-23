@@ -24,7 +24,6 @@ class ComparisonNode final : public BT::ConditionNode
 
         virtual BT::NodeStatus tick() override
         {
-            setStatus(BT::NodeStatus::RUNNING);
             const auto& first         = getInput<T>("first");
             const auto& second        = getInput<T>("second");
             const auto& comparison_op = getInput<std::string>("comparison_op");

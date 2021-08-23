@@ -23,7 +23,6 @@ class RandomizeSequenceNode final : public BT::SyncActionNode
 
         virtual BT::NodeStatus tick() override
         {
-            setStatus(BT::NodeStatus::RUNNING);
             const auto& raw_sequence = getInput<std::string>("sequence");
             const auto& delimiter    = getInput<std::string>("delimiter");
 

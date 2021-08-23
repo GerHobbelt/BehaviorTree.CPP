@@ -28,7 +28,6 @@ class WaitNode final : public BT::CoroActionNode
 
         virtual BT::NodeStatus tick() override
         {
-            setStatus(BT::NodeStatus::RUNNING);
             if(!waiting_)
             {
                 start_waiting_time_ = std::chrono::system_clock::now();

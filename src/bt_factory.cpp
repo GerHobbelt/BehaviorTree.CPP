@@ -311,6 +311,7 @@ void BehaviorTreeFactory::registerDefaultTypesConversions()
     registerTypeConverter<std::string, double>(convertFromString<double>);
     registerTypeConverter<std::string, std::vector<int>>(convertFromString<std::vector<int>>);
     registerTypeConverter<std::string, std::vector<double>>(convertFromString<std::vector<double>>);
+    registerTypeConverter<std::string, std::vector<std::string>>(convertFromString<std::vector<std::string>>);
     registerTypeConverter<std::string, bool>(convertFromString<bool>);
     registerTypeConverter<std::string, NodeType>(convertFromString<NodeType>);
     registerTypeConverter<std::string, PortDirection>(convertFromString<PortDirection>);

@@ -18,8 +18,6 @@ class CheckBoolNode final : public BT::ConditionNode
 
         virtual BT::NodeStatus tick() override
         {
-            setStatus(BT::NodeStatus::RUNNING);
-
             const auto& bool_value = getInput<bool>("input");
 
             if(!bool_value) { throw BT::RuntimeError { name() + ": " + bool_value.error() }; }

@@ -25,7 +25,6 @@ class BasicMathNode final : public BT::SyncActionNode
 
         virtual BT::NodeStatus tick() override
         {
-            setStatus(BT::NodeStatus::RUNNING);
             const auto& first   = getInput<T>("first");
             const auto& second  = getInput<T>("second");
             const auto& math_op = getInput<std::string>("operator");

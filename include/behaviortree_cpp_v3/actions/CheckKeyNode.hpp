@@ -6,15 +6,10 @@
 
 namespace BT
 {
-class CheckKeyNode final : public BT::SyncActionNode
+class CheckKeyNode final : public BT::ActionNodeBase
 {
     public:
-        using BT::SyncActionNode::SyncActionNode;
-        // CheckKeyNode(const std::string& name) :
-        //     SyncActionNode(name, {})
-        // {
-        //     setRegistrationID("CheckKey");
-        // }
+        using BT::ActionNodeBase::ActionNodeBase;
         ~CheckKeyNode() = default;
 
         static BT::PortsList providedPorts()
@@ -48,6 +43,7 @@ class CheckKeyNode final : public BT::SyncActionNode
             return status;
         }
 
+        virtual void halt() override { setStatus(BT::NodeStatus::IDLE); }
 };
 
 }
