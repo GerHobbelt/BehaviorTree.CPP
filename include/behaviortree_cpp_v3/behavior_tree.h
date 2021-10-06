@@ -47,6 +47,7 @@
 #include "behaviortree_cpp_v3/actions/RandomizeSequenceNode.hpp"
 #include "behaviortree_cpp_v3/actions/SubstringNode.hpp"
 #include "behaviortree_cpp_v3/actions/WaitNode.hpp"
+#include "behaviortree_cpp_v3/actions/GetLinuxEnvVarNode.hpp"
 
 #include "behaviortree_cpp_v3/conditions/CheckBoolNode.hpp"
 #include "behaviortree_cpp_v3/conditions/ComparisonNode.hpp"

@@ -282,6 +282,7 @@ void BehaviorTreeFactory::registerDefaultNodes()
     registerNodeType<SubstringNode>("FindSubstrings");
     registerNodeType<WaitNode<std::chrono::seconds>>("WaitSeconds");
     registerNodeType<WaitNode<std::chrono::milliseconds>>("WaitMilliseconds");
+    registerNodeType<GetLinuxEnvVarNode>("GetLinuxEnvVar");
 
     registerNodeType<CheckBoolNode>("CheckBool");
     registerNodeType<ComparisonNode<double>>("CompareNumbers");
