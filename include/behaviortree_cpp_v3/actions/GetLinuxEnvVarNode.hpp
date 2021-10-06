@@ -16,8 +16,8 @@ class GetLinuxEnvVarNode final : public BT::SyncActionNode
 
         static BT::PortsList providedPorts()
         {
-            return { BT::InputPort<std::string>("env_var_name", "Name of the enviromment variable to get"),
-                     BT::OutputPort<std::string>("output", "Value of the enviromment variable")
+            return { BT::InputPort<std::string>("env_var_name", "Name of the environment variable to get"),
+                     BT::OutputPort<std::string>("output", "Value of the environment variable")
                    };
         }
 

@@ -7,7 +7,7 @@
 [![LGTM Grade](https://img.shields.io/lgtm/grade/cpp/github/BehaviorTree/BehaviorTree.CPP)](https://lgtm.com/projects/g/BehaviorTree/BehaviorTree.CPP/context:cpp)
 <!-- [![Join the chat at https://gitter.im/BehaviorTree-ROS/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/BehaviorTree-ROS/Lobby?utm_source=badge&utm_medium=badge&utm_content=badge) -->
 
-![Build and Release for ROS Noetic](https://github.com/robotics-upo/Groot/workflows/Build%20and%20Release%20for%20ROS%20Noetic/badge.svg)
+[![Build and Release for ROS Noetic](https://github.com/robotics-upo/BehaviorTree.CPP/actions/workflows/main.yml/badge.svg)](https://github.com/robotics-upo/BehaviorTree.CPP/actions/workflows/main.yml)
 
 # BehaviorTree.CPP
 
