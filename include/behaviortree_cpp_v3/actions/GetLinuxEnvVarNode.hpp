@@ -27,14 +27,20 @@ class GetLinuxEnvVarNode final : public BT::SyncActionNode
 
             if(!env_var_name) { throw BT::RuntimeError { name() + ": " + env_var_name.error() }; }
 
-            char * val;
+            std::string output_string;
 
-            if(env_var_name.value() != "HOSTNAME")
-                val = getenv(env_var_name.value().c_str());
+            if(env_var_name.value() == "HOSTNAME")
+            {
+                char val[HOST_NAME_MAX + 4];
+                int result = gethostname(val, HOST_NAME_MAX + 4);
+                output_string = result == 0 ? std::string(val) : std::string("");
+            }
             else
-                gethostname(val, HOST_NAME_MAX + 1);
-
-            std::string output_string = val == NULL ? std::string("") : std::string(val);
+            {
+                char * val = 0;
+                val = getenv(env_var_name.value().c_str());
+                output_string = val == 0 ? std::string("") : std::string(val);
+            }
 
             setOutput("output", output_string);
             return output_string == "" ? BT::NodeStatus::FAILURE : BT::NodeStatus::SUCCESS;
