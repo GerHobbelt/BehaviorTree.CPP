@@ -112,8 +112,20 @@ elseif(BUILD_UNIT_TESTS)
         set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
         FetchContent_MakeAvailable(googletest)
     endif()
+   
 endif()
 
+if ( (NOT ament_cmake_FOUND) AND (NOT (CATKIN_DEVEL_PREFIX OR CATKIN_BUILD_BINARY_PACKAGE)))
+	# in case we're using pure cmake
+	add_definitions( -DUSING_ROS )
+	find_package(catkin REQUIRED COMPONENTS roslib)
+	find_package(GTest)
+	catkin_package(
+		INCLUDE_DIRS include # do not include "3rdparty" here
+		LIBRARIES ${BEHAVIOR_TREE_LIBRARY}
+		CATKIN_DEPENDS roslib
+		)
+endif()
 
 #############################################################
 # LIBRARY
