@@ -64,13 +64,13 @@ void TreeNode::setStatus(NodeStatus new_status)
 {
   NodeStatus prev_status;
   {
-    std::unique_lock<std::mutex> UniqueLock(state_mutex_);
+//    std::unique_lock<std::mutex> UniqueLock(state_mutex_);
     prev_status = status_;
     status_ = new_status;
   }
   if (prev_status != new_status)
   {
-    state_condition_variable_.notify_all();
+//    state_condition_variable_.notify_all();
     state_change_signal_.notify(std::chrono::high_resolution_clock::now(), *this,
                                 prev_status, new_status);
   }
@@ -78,13 +78,13 @@ void TreeNode::setStatus(NodeStatus new_status)
 
 void TreeNode::resetStatus()
 {
-  std::unique_lock<std::mutex> lock(state_mutex_);
+//  std::unique_lock<std::mutex> lock(state_mutex_);
   status_ = NodeStatus::IDLE;
 }
 
 NodeStatus TreeNode::status() const
 {
-  std::lock_guard<std::mutex> lock(state_mutex_);
+//  std::lock_guard<std::mutex> lock(state_mutex_);
   return status_;
 }
 
