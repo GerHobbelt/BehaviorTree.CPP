@@ -29,6 +29,8 @@ option(BTCPP_EXAMPLES   "Build tutorials and examples" ON)
 option(BTCPP_UNIT_TESTS "Build the unit tests" ON)
 option(BTCPP_GROOT_INTERFACE "Add Groot2 connection. Requires ZeroMQ" ON)
 option(BTCPP_SQLITE_LOGGING "Add SQLite logging." ON)
+option(BTCPP_BUILD_WITH_AMENT "Build with the ament build system." ON)
+option(BTCPP_BUILD_WITH_CATKIN "Build with the catkin build system." ON)
 
 option(USE_V3_COMPATIBLE_NAMES  "Use some alias to compile more easily old 3.x code" OFF)
 
@@ -50,7 +52,7 @@ endif()
 
 find_package(ament_cmake QUIET)
 
-if ( ament_cmake_FOUND )
+if ( BTCPP_BUILD_WITH_AMENT AND ament_cmake_FOUND )
 
     add_definitions( -DUSING_ROS2 )
     message(STATUS "------------------------------------------")
@@ -58,7 +60,7 @@ if ( ament_cmake_FOUND )
     message(STATUS "------------------------------------------")
     include(cmake/ament_build.cmake)
 
-elseif( CATKIN_DEVEL_PREFIX OR CATKIN_BUILD_BINARY_PACKAGE)
+elseif(BTCPP_BUILD_WITH_CATKIN AND (CATKIN_DEVEL_PREFIX OR CATKIN_BUILD_BINARY_PACKAGE))
 
     add_definitions( -DUSING_ROS )
     message(STATUS "------------------------------------------")
