@@ -42,6 +42,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 option(BUILD_EXAMPLES   "Build tutorials and examples" ON)
 option(BUILD_UNIT_TESTS "Build the unit tests" ON)
 option(BUILD_TOOLS "Build commandline tools" ON)
+option(BUILD_WITH_CURSES "Build with curses" ON)
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 #---- Find other packages ----
@@ -175,16 +176,17 @@ list(APPEND BT_SOURCE
     3rdparty/minitrace/minitrace.cpp
     )
 
-find_package(Curses QUIET)
+if(BUILD_WITH_CURSES)
+    find_package(Curses QUIET)
 
-if(CURSES_FOUND)
-    list(APPEND BT_SOURCE
-        src/controls/manual_node.cpp
-        )
-    list(APPEND BEHAVIOR_TREE_PUBLIC_LIBRARIES ${CURSES_LIBRARIES})
-    add_definitions(-DNCURSES_FOUND)
+    if(CURSES_FOUND)
+        list(APPEND BT_SOURCE
+            src/controls/manual_node.cpp
+            )
+        list(APPEND BEHAVIOR_TREE_PUBLIC_LIBRARIES ${CURSES_LIBRARIES})
+        add_definitions(-DNCURSES_FOUND)
+    endif()
 endif()
-
 
 ######################################################
 
