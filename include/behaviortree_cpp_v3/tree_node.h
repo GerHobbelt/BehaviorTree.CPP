@@ -23,6 +23,7 @@
 #include "behaviortree_cpp_v3/blackboard.h"
 #include "behaviortree_cpp_v3/utils/strcat.hpp"
 #include "behaviortree_cpp_v3/utils/wakeup_signal.hpp"
+#include "behaviortree_cpp_v3/status/general_status_interface.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable : 4127)
@@ -99,6 +100,8 @@ public:
       std::function<Optional<NodeStatus>(TreeNode&, NodeStatus)>;
   using PostTickOverrideCallback =
       std::function<Optional<NodeStatus>(TreeNode&, NodeStatus, NodeStatus)>;
+  using GeneralStatusUpdateCallback =
+      std::function<Optional<general_status::GeneralStatus>(TreeNode&, NodeStatus)>;
 
   /**
      * @brief subscribeToStatusChange is used to attach a callback to a status change.
@@ -182,6 +185,18 @@ public:
   // Notify the tree should be ticked again()
   void emitStateChanged();
 
+  /**
+     * This method updates a General Status update callback with signature:
+     *
+     *     Optional<NodeStatus> myCallback(TreeNode& node, NodeStatus prev_status, NodeStatus tick_status)
+     *
+     * This callback is executed AFTER the tick() when the Node Status is Completed (SUCCESS|FaILURE).
+     * It can be used to set up customize General Status updater
+     */
+  void setGeneralStatusUpdateFunction(GeneralStatusUpdateCallback callback);
+
+  const Optional<general_status::GeneralStatus>& getGeneralStatus() const;
+
 protected:
   /// Method to be implemented by the user
   virtual BT::NodeStatus tick() = 0;
@@ -202,6 +217,8 @@ protected:
 
   /// Equivalent to setStatus(NodeStatus::IDLE)
   void resetStatus();
+
+  static GeneralStatusUpdateCallback getDefaultGeneralStatusUpdateCallback();
 
 private:
   const std::string name_;
@@ -225,6 +242,10 @@ private:
   PostTickOverrideCallback post_condition_callback_;
 
   std::shared_ptr<WakeUpSignal> wake_up_;
+
+  Optional<general_status::GeneralStatus> general_status_;
+
+  GeneralStatusUpdateCallback general_status_update_callback_;
 };
 
 //-------------------------------------------------------
@@ -259,18 +280,21 @@ inline Result TreeNode::getInput(const std::string& key, T& destination) const
     std::unique_lock<std::mutex> entry_lock(config_.blackboard->entryMutex());
     const Any* val = config_.blackboard->getAny(static_cast<std::string>(remapped_key));
 
-    if(!val)
+    if (!val)
     {
       return nonstd::make_unexpected(StrCat("getInput() failed because it was unable to "
-                                     "find the port [", key,
-                                     "] remapped to BB [", remapped_key, "]"));
+                                            "find the port [",
+                                            key, "] remapped to BB [", remapped_key,
+                                            "]"));
     }
 
-    if(val->empty())
+    if (val->empty())
     {
       return nonstd::make_unexpected(StrCat("getInput() failed because the port [", key,
-                                            "] remapped to BB [", remapped_key, "] was found,"
-                                            "but its content was not initialized correctly"));
+                                            "] remapped to BB [", remapped_key,
+                                            "] was found,"
+                                            "but its content was not initialized "
+                                            "correctly"));
     }
 
     if (!std::is_same<T, std::string>::value && val->type() == typeid(std::string))

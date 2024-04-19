@@ -1,5 +1,8 @@
 *~
 /CMakeLists.txt.user
-build*
+build/*
 site/*
 /.vscode/
+/.idea/
+/cmake-build-debug/
+/debs/

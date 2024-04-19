@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10.2) # version on Ubuntu Bionic
-project(behaviortree_cpp_v3)
+project(behaviortree_cpp_v3 VERSION 3.8.6)
 
 #---- Add the subdirectory cmake ----
 set(CMAKE_CONFIG_PATH ${CMAKE_MODULE_PATH}  "${CMAKE_CURRENT_LIST_DIR}/cmake")
@@ -301,17 +301,13 @@ else()
         ARCHIVE DESTINATION ${BEHAVIOR_TREE_LIB_DESTINATION}
         LIBRARY DESTINATION ${BEHAVIOR_TREE_LIB_DESTINATION}
         RUNTIME DESTINATION ${BEHAVIOR_TREE_BIN_DESTINATION}
+        INCLUDES DESTINATION ${BEHAVIOR_TREE_INC_DESTINATION}
     )
 
     install(EXPORT ${PROJECT_NAME}Targets
         FILE "${PROJECT_NAME}Targets.cmake"
         DESTINATION "${BEHAVIOR_TREE_LIB_DESTINATION}/cmake/${PROJECT_NAME}"
         NAMESPACE BT::
-    )
-
-    install(FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-        DESTINATION "${BEHAVIOR_TREE_LIB_DESTINATION}/cmake/${PROJECT_NAME}"
     )
 
     export(PACKAGE ${PROJECT_NAME})
@@ -323,6 +319,18 @@ else()
         "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         INSTALL_DESTINATION "${BEHAVIOR_TREE_LIB_DESTINATION}/cmake/${PROJECT_NAME}"
     )
+    
+    write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY ExactVersion
+    )
+
+    install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+        DESTINATION "${BEHAVIOR_TREE_LIB_DESTINATION}/cmake/${PROJECT_NAME}"
+    )    
 endif()
 
 

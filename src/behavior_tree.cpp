@@ -113,4 +113,68 @@ void buildSerializedStatusSnapshot(TreeNode* root_node,
   applyRecursiveVisitor(root_node, visitor);
 }
 
+general_status::GeneralStatus buildTreeGeneralStatus(const TreeNode* node)
+{
+  if (!node)
+  {
+    throw LogicError("One of the children of a DecoratorNode or ControlNode is "
+                     "nullptr");
+  }
+  if (!node->getGeneralStatus().has_value())
+  {
+    throw LogicError("The node has no general status");
+  }
+
+  general_status::GeneralStatus tree_general_status =
+      node->getGeneralStatus().value().getCopy();
+
+  if (auto control = dynamic_cast<const BT::ControlNode*>(node))
+  {
+    for (const auto& child : control->children())
+    {
+      if (child->getGeneralStatus().has_value())
+      {
+        tree_general_status.underlying_status_messages_.push_back(
+            std::make_unique<general_status::GeneralStatus>(
+                buildTreeGeneralStatus(child)));
+      }
+    }
+  }
+  else if (auto decorator = dynamic_cast<const BT::DecoratorNode*>(node))
+  {
+    if (decorator->child() && decorator->child()->getGeneralStatus().has_value())
+    {
+      tree_general_status.underlying_status_messages_.push_back(
+          std::make_unique<general_status::GeneralStatus>(
+              buildTreeGeneralStatus(decorator->child())));
+    }
+  }
+
+  return tree_general_status;
+}
+
+void printGeneralStatusRecursively(const general_status::GeneralStatus& status,
+                                   std::ostream& stream)
+{
+  std::function<void(const general_status::GeneralStatus&, unsigned)> recursivePrint;
+
+  recursivePrint = [&recursivePrint, &stream](const general_status::GeneralStatus& status,
+                                              unsigned depth) {
+    stream << std::string(depth, ' ');
+    stream << " Code: " << status.status_code_ << ",";
+    stream << " Desc: " << status.opt_string_.value_or("not set") << ",";
+    stream << " uuid: " << status.uuid_;
+    stream << std::endl;
+
+    for (const auto& child : status.underlying_status_messages_)
+    {
+      recursivePrint(*child.get(), depth + 1);
+    }
+  };
+
+  stream << "----------------" << std::endl;
+  recursivePrint(status, 0);
+  stream << "----------------" << std::endl;
+}
+
 }   // namespace BT

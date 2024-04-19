@@ -26,7 +26,9 @@ TreeNode::TreeNode(std::string name, NodeConfiguration config) :
   name_(std::move(name)),
   status_(NodeStatus::IDLE),
   uid_(getUID()),
-  config_(std::move(config))
+  config_(std::move(config)),
+  general_status_(nonstd::unexpected_type<std::string>("GeneralStatus not set")),
+  general_status_update_callback_(getDefaultGeneralStatusUpdateCallback())
 {}
 
 NodeStatus TreeNode::executeTick()
@@ -54,6 +56,12 @@ NodeStatus TreeNode::executeTick()
     {
       new_status = res.value();
     }
+  }
+
+  // Update General status if node operation is completed
+  if (StatusCompleted(new_status))
+  {
+    general_status_ = general_status_update_callback_(*this, new_status);
   }
 
   setStatus(new_status);
@@ -112,6 +120,16 @@ TreeNode::StatusChangeSubscriber
 TreeNode::subscribeToStatusChange(TreeNode::StatusChangeCallback callback)
 {
   return state_change_signal_.subscribe(std::move(callback));
+}
+
+void TreeNode::setPreTickOverrideFunction(PreTickOverrideCallback callback)
+{
+  pre_condition_callback_ = callback;
+}
+
+void TreeNode::setPostTickOverrideFunction(PostTickOverrideCallback callback)
+{
+  post_condition_callback_ = std::move(callback);
 }
 
 uint16_t TreeNode::UID() const
@@ -223,6 +241,27 @@ void TreeNode::modifyPortsRemapping(const PortsRemapping& new_remapping)
       it->second = new_it.second;
     }
   }
+}
+
+void TreeNode::setGeneralStatusUpdateFunction(GeneralStatusUpdateCallback callback)
+{
+  general_status_update_callback_ = std::move(callback);
+}
+
+const Optional<general_status::GeneralStatus>& TreeNode::getGeneralStatus() const
+{
+  return general_status_;
+}
+
+TreeNode::GeneralStatusUpdateCallback TreeNode::getDefaultGeneralStatusUpdateCallback()
+{
+  return [](TreeNode& tree_node, NodeStatus node_status) {
+    auto status = general_status::GeneralStatus();
+    status.opt_string_ = tree_node.name() + " - " + toStr(node_status);
+    status.uuid_ = "Tree Node UID: " + std::to_string(tree_node.UID());
+    status.status_code_ = node_status == NodeStatus::SUCCESS ? 0 : 2000000;
+    return status;
+  };
 }
 
 }   // namespace BT

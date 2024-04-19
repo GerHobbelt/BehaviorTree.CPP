@@ -43,6 +43,7 @@
 #include "behaviortree_cpp_v3/decorators/blackboard_precondition.h"
 #include "behaviortree_cpp_v3/decorators/timeout_node.h"
 #include "behaviortree_cpp_v3/decorators/delay_node.h"
+#include "behaviortree_cpp_v3/status/general_status_interface.h"
 
 #include <iostream>
 
@@ -89,6 +90,19 @@ inline NodeType getType()
     return NodeType::UNDEFINED;
   // clang-format on
 }
+
+/**
+ * @brief buildTreeGeneralStatus can be used to create a general status message containing all ticked nodes
+ *
+ * @param root_node
+ */
+general_status::GeneralStatus buildTreeGeneralStatus(const TreeNode* node);
+
+/**
+ * Debug function to print the hierarchy of the general status. Prints to std::cout by default.
+ */
+void printGeneralStatusRecursively(const general_status::GeneralStatus& status,
+                                   std::ostream& stream = std::cout);
 
 }   // namespace BT
 

@@ -358,7 +358,7 @@ inline PortsList getProvidedPorts(enable_if<has_static_method_providedPorts<T>> 
 
 template <typename T>
 inline PortsList
-    getProvidedPorts(enable_if_not<has_static_method_providedPorts<T>> = nullptr)
+getProvidedPorts(enable_if_not<has_static_method_providedPorts<T>> = nullptr)
 {
   return {};
 }

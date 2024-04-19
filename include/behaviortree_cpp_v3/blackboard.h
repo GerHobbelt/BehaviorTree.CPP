@@ -68,7 +68,7 @@ public:
     {
       value = val->cast<T>();
     }
-    return (bool)val;
+    return static_cast<bool>(val);
   }
 
   /**
@@ -97,7 +97,7 @@ public:
 
     // check local storage
     auto it = storage_.find(key);
-    std::shared_ptr<Entry> entry;
+    std::shared_ptr<Blackboard::Entry> entry;
     if (it != storage_.end())
     {
       entry = it->second;
@@ -105,7 +105,6 @@ public:
     else
     {
       Any new_value(value);
-      std::shared_ptr<Blackboard::Entry> entry;
       lock.unlock();
       if(std::is_constructible<std::string, T>::value)
       {

@@ -128,6 +128,8 @@ public:
   std::vector<TreeNode::Ptr> nodes;
   std::vector<Blackboard::Ptr> blackboard_stack;
   std::unordered_map<std::string, TreeNodeManifest> manifests;
+  Optional<general_status::GeneralStatus> general_status{
+      nonstd::unexpected_type<std::string>("GeneralStatus not set")};
 
   Tree()
   {}
@@ -221,6 +223,7 @@ public:
     NodeStatus ret = rootNode()->executeTick();
     if (ret == NodeStatus::SUCCESS || ret == NodeStatus::FAILURE)
     {
+      updateGeneralStatus();
       rootNode()->setStatus(BT::NodeStatus::IDLE);
     }
     return ret;
@@ -234,6 +237,14 @@ public:
   ~Tree();
 
   Blackboard::Ptr rootBlackboard();
+
+  void updateGeneralStatus()
+  {
+    if (rootNode() && rootNode()->getGeneralStatus().has_value())
+    {
+      general_status = buildTreeGeneralStatus(rootNode());
+    }
+  }
 
 private:
   std::shared_ptr<WakeUpSignal> wake_up_;
