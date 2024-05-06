@@ -36,12 +36,15 @@ NodeStatus TreeNode::executeTick()
   NodeStatus new_status = status_;
   // a pre-condition may return the new status.
   // In this case it override the actual tick()
+  Optional<NodeStatus> pre_condition_result = nonstd::unexpected_type<std::string>("");
   if (pre_condition_callback_)
   {
-    if (auto res = pre_condition_callback_(*this, status_))
-    {
-      new_status = res.value();
-    }
+    pre_condition_result = pre_condition_callback_(*this, status_);
+  }
+
+  if (pre_condition_result.has_value())
+  {
+    new_status = pre_condition_result.value();
   }
   else
   {
@@ -124,7 +127,7 @@ TreeNode::subscribeToStatusChange(TreeNode::StatusChangeCallback callback)
 
 void TreeNode::setPreTickOverrideFunction(PreTickOverrideCallback callback)
 {
-  pre_condition_callback_ = callback;
+  pre_condition_callback_ = std::move(callback);
 }
 
 void TreeNode::setPostTickOverrideFunction(PostTickOverrideCallback callback)
