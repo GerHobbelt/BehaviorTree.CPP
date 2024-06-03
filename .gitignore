@@ -6,3 +6,4 @@ site/*
 /.idea/
 /cmake-build-debug/
 /debs/
+.cache

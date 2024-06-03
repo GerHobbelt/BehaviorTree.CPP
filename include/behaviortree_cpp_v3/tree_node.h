@@ -100,8 +100,8 @@ public:
       std::function<Optional<NodeStatus>(TreeNode&, NodeStatus)>;
   using PostTickOverrideCallback =
       std::function<Optional<NodeStatus>(TreeNode&, NodeStatus, NodeStatus)>;
-  using GeneralStatusUpdateCallback =
-      std::function<Optional<general_status::GeneralStatus>(TreeNode&, NodeStatus)>;
+  using GeneralStatusUpdateCallback = std::function<void(
+      TreeNode&, NodeStatus, Optional<general_status::GeneralStatus>&)>;
 
   /**
      * @brief subscribeToStatusChange is used to attach a callback to a status change.
@@ -218,7 +218,13 @@ protected:
   /// Equivalent to setStatus(NodeStatus::IDLE)
   void resetStatus();
 
-  static GeneralStatusUpdateCallback getDefaultGeneralStatusUpdateCallback();
+  static void
+  defaultGeneralStatusUpdateCallback(TreeNode& tree_node, NodeStatus node_status,
+                                     Optional<general_status::GeneralStatus>& status);
+
+  void appendChildGeneralStatus(const Optional<general_status::GeneralStatus>& status);
+
+  Optional<general_status::GeneralStatus> general_status_;
 
 private:
   const std::string name_;
@@ -242,8 +248,6 @@ private:
   PostTickOverrideCallback post_condition_callback_;
 
   std::shared_ptr<WakeUpSignal> wake_up_;
-
-  Optional<general_status::GeneralStatus> general_status_;
 
   GeneralStatusUpdateCallback general_status_update_callback_;
 };
