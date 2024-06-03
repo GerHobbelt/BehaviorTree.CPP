@@ -47,6 +47,7 @@ inline NodeStatus KeepRunningUntilFailureNode::tick()
       return NodeStatus::FAILURE;
     }
     case NodeStatus::SUCCESS: {
+      appendChildGeneralStatus(child_node_->getGeneralStatus());
       resetChild();
       return NodeStatus::RUNNING;
     }

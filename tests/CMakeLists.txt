@@ -20,6 +20,7 @@ set(BT_TESTS
   gtest_subtree.cpp
   gtest_switch.cpp
   gtest_wakeup.cpp
+  gtest_general_status_decorators.cpp
 )
 
 if( ZMQ_FOUND )

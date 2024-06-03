@@ -64,6 +64,7 @@ NodeStatus RetryNode::tick()
 
       case NodeStatus::FAILURE: {
         try_count_++;
+        appendChildGeneralStatus(child_node_->getGeneralStatus());
         resetChild();
       }
       break;

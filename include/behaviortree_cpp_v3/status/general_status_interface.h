@@ -17,6 +17,12 @@ namespace general_status
 {
 using EnumType = int;
 
+enum BtErrorCodes : EnumType
+{
+  OK = 0,
+  BEHAVIOR_TREE_NODE_FAILURE = 2000000,
+};
+
 struct Timestamp
 {
   int64_t seconds_;
@@ -44,7 +50,7 @@ struct GeneralStatus
 {
   uint64_t id_;
   Timestamp timestamp_;
-  EnumType status_code_;
+  EnumType status_code_ = BtErrorCodes::OK;
   Optional<EnumType> source_;
   Optional<ShuttleHardwareInfo> shuttle_hardware_info_;
   Optional<TaskInfo> task_info_;
@@ -60,7 +66,7 @@ struct GeneralStatus
   GeneralStatus(GeneralStatus&&) = default;
   GeneralStatus& operator=(GeneralStatus&&) = default;
 
-  GeneralStatus getCopy() const
+  GeneralStatus getShallowCopy() const
   {
     GeneralStatus copy;
     copy.id_ = id_;
@@ -72,13 +78,33 @@ struct GeneralStatus
     copy.opt_string_ = opt_string_;
     copy.shuttle_id_ = shuttle_id_;
     copy.station_name_ = station_name_;
+    copy.uuid_ = uuid_;
+    return copy;
+  }
+
+  GeneralStatus getCopy() const
+  {
+    auto copy = getShallowCopy();
     for (const auto& status : underlying_status_messages_)
     {
       copy.underlying_status_messages_.push_back(
           std::make_unique<GeneralStatus>(status->getCopy()));
     }
-    copy.uuid_ = uuid_;
     return copy;
+  }
+
+  void mergeDataShallow(const GeneralStatus& other)
+  {
+    id_ = other.id_;
+    timestamp_ = other.timestamp_;
+    status_code_ = other.status_code_;
+    source_ = other.source_;
+    shuttle_hardware_info_ = other.shuttle_hardware_info_;
+    task_info_ = other.task_info_;
+    opt_string_ = other.opt_string_;
+    shuttle_id_ = other.shuttle_id_;
+    station_name_ = other.station_name_;
+    uuid_ = other.uuid_;
   }
 };
 

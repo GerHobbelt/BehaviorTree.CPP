@@ -74,6 +74,10 @@ public:
         }
         else
         {
+          if (child_state == NodeStatus::SUCCESS)
+          {
+            appendChildGeneralStatus(child_node_->getGeneralStatus());
+          }
           haltChild();
           if (child_state == NodeStatus::FAILURE)
           {

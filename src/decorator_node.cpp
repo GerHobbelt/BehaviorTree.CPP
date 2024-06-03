@@ -17,7 +17,25 @@ namespace BT
 {
 DecoratorNode::DecoratorNode(const std::string& name, const NodeConfiguration& config) :
   TreeNode::TreeNode(name, config), child_node_(nullptr)
-{}
+{
+  setGeneralStatusUpdateFunction([&](TreeNode& /*tree_node*/, NodeStatus node_status,
+                                     Optional<general_status::GeneralStatus>& status) {
+    if (node_status == NodeStatus::FAILURE && child_node_ != nullptr &&
+        child_node_->getGeneralStatus().has_value())
+    {
+      // Make shallow copy if empty, merge if already exists
+      if (!status.has_value())
+      {
+        status = child_node_->getGeneralStatus().value().getShallowCopy();
+      }
+      else
+      {
+        status->mergeDataShallow(child_node_->getGeneralStatus().value());
+      }
+    }
+    TreeNode::defaultGeneralStatusUpdateCallback(*this, node_status, status);
+  });
+}
 
 void DecoratorNode::setChild(TreeNode* child)
 {
@@ -61,7 +79,6 @@ void DecoratorNode::resetChild()
   }
   child_node_->resetStatus();
 }
-
 
 SimpleDecoratorNode::SimpleDecoratorNode(const std::string& name,
                                          TickFunctor tick_functor,
