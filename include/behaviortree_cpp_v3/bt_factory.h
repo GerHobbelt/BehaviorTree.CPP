@@ -240,9 +240,13 @@ public:
 
   void updateGeneralStatus()
   {
-    if (rootNode() && rootNode()->getGeneralStatus().has_value())
+    if (rootNode())
     {
-      general_status = buildTreeGeneralStatus(rootNode());
+      if (rootNode()->getGeneralStatus().has_value())
+      {
+        general_status = buildTreeGeneralStatus(rootNode());
+      }
+      resetTreeGeneralStatus(rootNode());
     }
   }
 

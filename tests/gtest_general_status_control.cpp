@@ -61,10 +61,9 @@ TEST_F(GeneralStatusControlTest, Fallback)
 
   const auto& status = root_->getGeneralStatus();
   ASSERT_TRUE(status.has_value()) << "Root node status not set";
-  EXPECT_EQ(status.value().status_code_, BtErrorCodes::OK) << "Root node "
-                                                              "status "
-                                                              "mismatch";
-  root_->halt();
+  EXPECT_EQ(status.value().status_code_, BtErrorCodes::OK) << "Root status mismatch";
+
+  // reset GS or reset node status to IDLE
   root_->resetGeneralStatus();
 
   // 2: A(FAIL) -> B(FAIL) -> OUTPUT: FAIL (B)

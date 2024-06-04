@@ -96,7 +96,14 @@ inline NodeType getType()
  *
  * @param root_node
  */
-general_status::GeneralStatus buildTreeGeneralStatus(const TreeNode* node);
+general_status::GeneralStatus buildTreeGeneralStatus(const TreeNode* root_node);
+
+/**
+ * @brief resetTreeGeneralStatus can be used to reset the general status of all nodes in the tree
+ *
+ * @param root_node
+ */
+void resetTreeGeneralStatus(TreeNode* root_node);
 
 /**
  * Debug function to print the hierarchy of the general status. Prints to std::cout by default.

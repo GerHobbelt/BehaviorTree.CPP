@@ -34,6 +34,13 @@ TreeNode::TreeNode(std::string name, NodeConfiguration config) :
 NodeStatus TreeNode::executeTick()
 {
   NodeStatus new_status = status_;
+
+  // Reset General status on first tick after a node is halted
+  if (isHalted())
+  {
+    resetGeneralStatus();
+  }
+
   // a pre-condition may return the new status.
   // In this case it override the actual tick()
   Optional<NodeStatus> pre_condition_result = nonstd::unexpected_type<std::string>("");
@@ -256,6 +263,11 @@ const Optional<general_status::GeneralStatus>& TreeNode::getGeneralStatus() cons
   return general_status_;
 }
 
+void TreeNode::resetGeneralStatus()
+{
+  general_status_ = nonstd::unexpected_type<std::string>("GeneralStatus not set");
+}
+
 void TreeNode::defaultGeneralStatusUpdateCallback(
     TreeNode& tree_node, NodeStatus node_status,
     Optional<general_status::GeneralStatus>& status)
@@ -277,9 +289,10 @@ void TreeNode::defaultGeneralStatusUpdateCallback(
   }
 }
 
-void TreeNode::appendChildGeneralStatus(const Optional<general_status::GeneralStatus>& status)
+void TreeNode::appendChildGeneralStatus(
+    const Optional<general_status::GeneralStatus>& status)
 {
-  if(!status.has_value())
+  if (!status.has_value())
   {
     throw RuntimeError("The child node for appending has no general status");
   }

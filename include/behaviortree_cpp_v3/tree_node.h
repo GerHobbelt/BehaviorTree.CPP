@@ -169,7 +169,7 @@ public:
   template <typename T>
   Result setOutput(const std::string& key, const T& value);
 
-  // function provide mostrly for debugging purpose to see the raw value
+  // function provide mostly for debugging purpose to see the raw value
   // in the port (no remapping and no conversion to a type)
   StringView getRawPortValue(const std::string& key) const;
 
@@ -196,6 +196,8 @@ public:
   void setGeneralStatusUpdateFunction(GeneralStatusUpdateCallback callback);
 
   const Optional<general_status::GeneralStatus>& getGeneralStatus() const;
+  
+  void resetGeneralStatus();
 
 protected:
   /// Method to be implemented by the user
@@ -226,7 +228,7 @@ protected:
 
   Optional<general_status::GeneralStatus> general_status_;
 
-private:
+private:  
   const std::string name_;
 
   NodeStatus status_;
