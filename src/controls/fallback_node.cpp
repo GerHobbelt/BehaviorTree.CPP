@@ -19,6 +19,14 @@ FallbackNode::FallbackNode(const std::string& name) :
   ControlNode::ControlNode(name, {}), current_child_idx_(0)
 {
   setRegistrationID("Fallback");
+  setGeneralStatusUpdateFunction([&](TreeNode& /*tree_node*/, NodeStatus node_status,
+                                     Optional<general_status::GeneralStatus>& status) {
+    if (node_status == NodeStatus::FAILURE && !children_nodes_.empty())
+    {
+      status = children_nodes_.back()->getGeneralStatus().value().getShallowCopy();
+    }
+    TreeNode::defaultGeneralStatusUpdateCallback(*this, node_status, status);
+  });
 }
 
 NodeStatus FallbackNode::tick()

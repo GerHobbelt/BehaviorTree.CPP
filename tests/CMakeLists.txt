@@ -22,6 +22,7 @@ set(BT_TESTS
   gtest_wakeup.cpp
   src/status_action_test_node.cpp
   gtest_general_status_decorators.cpp
+  gtest_general_status_control.cpp
 )
 
 if( ZMQ_FOUND )
