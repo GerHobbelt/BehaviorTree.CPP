@@ -14,73 +14,12 @@
 #include "action_test_node.h"
 #include "behaviortree_cpp_v3/behavior_tree.h"
 #include "behaviortree_cpp_v3/decorators/consume_queue.h"
+#include "status_action_test_node.h"
 
 using BT::NodeStatus;
 using BT::general_status::BtErrorCodes;
 using BT::general_status::EnumType;
 using std::chrono::milliseconds;
-
-class SimpleAction : public BT::ActionNodeBase
-{
-public:
-  SimpleAction(const std::string& name);
-  BT::NodeStatus tick() override;
-  void setExpectedResult(NodeStatus res);
-  void setExpectedCode(BT::general_status::EnumType code);
-  int tickCount() const;
-  void resetTicks();
-  void halt() override;
-
-private:
-  NodeStatus expected_result_;
-  int tick_count_;
-};
-
-SimpleAction::SimpleAction(const std::string& name) : BT::ActionNodeBase(name, {})
-{
-  tick_count_ = 0;
-  expected_result_ = NodeStatus::IDLE;
-}
-
-int SimpleAction::tickCount() const
-{
-  return tick_count_;
-}
-
-void SimpleAction::resetTicks()
-{
-  tick_count_ = 0;
-}
-
-void SimpleAction::halt()
-{
-  resetTicks();
-}
-
-BT::NodeStatus SimpleAction::tick()
-{
-  if (status() == NodeStatus::IDLE)
-    resetTicks();
-  tick_count_++;
-  if (tick_count_ == 1)
-    return NodeStatus::RUNNING;
-  return expected_result_;
-}
-
-void SimpleAction::setExpectedResult(NodeStatus res)
-{
-  expected_result_ = res;
-}
-
-void SimpleAction::setExpectedCode(BT::general_status::EnumType code)
-{
-  setGeneralStatusUpdateFunction(
-      [code](TreeNode& tree_node, NodeStatus node_status,
-             BT::Optional<BT::general_status::GeneralStatus>& status) {
-        status = BT::general_status::GeneralStatus();
-        status->status_code_ = code;
-      });
-}
 
 class GeneralStatusDecoratorTest : public ::testing::Test
 {
@@ -93,7 +32,7 @@ public:
 
   void initialize(NodeStatus actionResult, EnumType actionCode)
   {
-    action_ = std::make_unique<SimpleAction>("action");
+    action_ = std::make_unique<StatusActionTestNode>("action");
     action_->setExpectedResult(actionResult);
     action_->setExpectedCode(actionCode);
     root_->setChild(action_.get());
@@ -178,7 +117,7 @@ public:
 
 protected:
   std::unique_ptr<BT::DecoratorNode> root_;
-  std::unique_ptr<SimpleAction> action_;
+  std::unique_ptr<StatusActionTestNode> action_;
 
   std::function<void()> createRoot_;
 
@@ -186,7 +125,6 @@ protected:
 };
 
 /****************TESTS START HERE***************************/
-//12 tests
 TEST_F(GeneralStatusDecoratorTest, BlackboardPrecondition)
 {
   auto bb = BT::Blackboard::create();
