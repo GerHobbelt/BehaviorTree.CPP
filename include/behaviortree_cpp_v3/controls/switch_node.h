@@ -122,6 +122,12 @@ inline NodeStatus SwitchNode<NUM_CASES>::tick()
     resetChildren();
     running_child_ = -1;
   }
+
+  if (ret == NodeStatus::FAILURE)
+  {
+    propagateGeneralStatusFromFailingChild(children_nodes_[match_index]);
+  }
+  
   return ret;
 }
 

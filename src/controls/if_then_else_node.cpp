@@ -71,6 +71,10 @@ NodeStatus IfThenElseNode::tick()
     }
     else
     {
+      if (status == NodeStatus::FAILURE)
+      {
+        propagateGeneralStatusFromFailingChild(children_nodes_[child_idx_]);
+      }
       resetChildren();
       child_idx_ = 0;
       return status;

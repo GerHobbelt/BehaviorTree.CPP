@@ -44,18 +44,14 @@ NodeStatus WhileDoElseNode::tick()
   }
 
   NodeStatus status = NodeStatus::IDLE;
-
-  if (condition_status == NodeStatus::SUCCESS)
+  int child_index_to_execute = (condition_status == NodeStatus::SUCCESS) ? 1 : 2;
+  int child_index_to_halt = (condition_status == NodeStatus::SUCCESS) ? 2 : 1;
+  haltChild(child_index_to_halt);
+  status = children_nodes_[child_index_to_execute]->executeTick();
+  if (status == NodeStatus::FAILURE)
   {
-    haltChild(2);
-    status = children_nodes_[1]->executeTick();
+    propagateGeneralStatusFromFailingChild(children_nodes_[child_index_to_execute]);
   }
-  else if (condition_status == NodeStatus::FAILURE)
-  {
-    haltChild(1);
-    status = children_nodes_[2]->executeTick();
-  }
-
   if (status == NodeStatus::RUNNING)
   {
     return NodeStatus::RUNNING;

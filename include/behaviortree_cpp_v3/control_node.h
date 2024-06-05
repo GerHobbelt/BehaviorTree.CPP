@@ -58,5 +58,8 @@ public:
   /// Set the status of all children to IDLE.
   /// also send a halt() signal to all RUNNING children
   void resetChildren();
+
+protected:
+  void propagateGeneralStatusFromFailingChild(const TreeNode* failing_child);
 };
 }   // namespace BT

@@ -44,6 +44,7 @@ NodeStatus SequenceStarNode::tick()
           haltChild(i);
         }
 
+        propagateGeneralStatusFromFailingChild(current_child_node);
         return child_status;
       }
       case NodeStatus::SUCCESS: {

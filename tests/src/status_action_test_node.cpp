@@ -9,8 +9,8 @@ StatusActionTestNode::StatusActionTestNode(const std::string& name) :
   setGeneralStatusUpdateFunction(
       [&](TreeNode& tree_node, BT::NodeStatus node_status,
           BT::Optional<BT::general_status::GeneralStatus>& status) {
-        status = BT::general_status::GeneralStatus();
-        status->status_code_ = expected_code_;
+        TreeNode::defaultGeneralStatusUpdateCallback(*this, node_status, status);
+        status->status_code_ = expected_code_; // override the default status code
       });
 }
 
