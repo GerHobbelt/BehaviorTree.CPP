@@ -24,11 +24,11 @@ static uint16_t getUID()
 
 TreeNode::TreeNode(std::string name, NodeConfiguration config) :
   general_status_(nonstd::unexpected_type<std::string>("GeneralStatus not set")),
+  general_status_update_callback_(&TreeNode::defaultGeneralStatusUpdateCallback),
   name_(std::move(name)),
   status_(NodeStatus::IDLE),
   uid_(getUID()),
-  config_(std::move(config)),
-  general_status_update_callback_(&TreeNode::defaultGeneralStatusUpdateCallback)
+  config_(std::move(config))
 {}
 
 NodeStatus TreeNode::executeTick()

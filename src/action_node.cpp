@@ -101,9 +101,20 @@ void CoroActionNode::setStatusRunningAndYield()
 
 NodeStatus CoroActionNode::executeTick()
 {
+  // Reset General status on first tick after a node is halted
+  if (isHalted())
+  {
+    resetGeneralStatus();
+  }
+
   if (!(_p->coro) || !(*_p->coro))
   {
     _p->coro.reset(new coroutine<void>::pull_type(_p->func));
+    // Update General status if node operation is completed
+    if (StatusCompleted(status()))
+    {
+      general_status_update_callback_(*this, status(), general_status_);
+    }
     return status();
   }
 
@@ -112,6 +123,11 @@ NodeStatus CoroActionNode::executeTick()
     (*_p->coro)();
   }
 
+  // Update General status if node operation is completed
+  if (StatusCompleted(status()))
+  {
+    general_status_update_callback_(*this, status(), general_status_);
+  }
   return status();
 }
 
@@ -160,6 +176,12 @@ void StatefulActionNode::halt()
 NodeStatus BT::AsyncActionNode::executeTick()
 {
   using lock_type = std::unique_lock<std::mutex>;
+  // Reset General status on first tick after a node is halted
+  if (isHalted())
+  {
+    resetGeneralStatus();
+  }
+
   //send signal to other thread.
   // The other thread is in charge for changing the status
   if (status() == NodeStatus::IDLE)
@@ -170,6 +192,10 @@ NodeStatus BT::AsyncActionNode::executeTick()
       try
       {
         auto status = tick();
+        if (StatusCompleted(status))
+        {
+          general_status_update_callback_(*this, status, general_status_);
+        }
         if (!isHaltRequested())
         {
           setStatus(status);

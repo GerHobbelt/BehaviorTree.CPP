@@ -227,6 +227,8 @@ protected:
   void appendChildGeneralStatus(const Optional<general_status::GeneralStatus>& status);
 
   Optional<general_status::GeneralStatus> general_status_;
+  
+  GeneralStatusUpdateCallback general_status_update_callback_;
 
 private:  
   const std::string name_;
@@ -250,8 +252,6 @@ private:
   PostTickOverrideCallback post_condition_callback_;
 
   std::shared_ptr<WakeUpSignal> wake_up_;
-
-  GeneralStatusUpdateCallback general_status_update_callback_;
 };
 
 //-------------------------------------------------------
