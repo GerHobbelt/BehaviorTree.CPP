@@ -196,8 +196,12 @@ public:
   void setGeneralStatusUpdateFunction(GeneralStatusUpdateCallback callback);
 
   const Optional<general_status::GeneralStatus>& getGeneralStatus() const;
-  
+
   void resetGeneralStatus();
+
+  static void
+  defaultGeneralStatusUpdateCallback(TreeNode& tree_node, NodeStatus node_status,
+                                     Optional<general_status::GeneralStatus>& status);
 
 protected:
   /// Method to be implemented by the user
@@ -220,17 +224,13 @@ protected:
   /// Equivalent to setStatus(NodeStatus::IDLE)
   void resetStatus();
 
-  static void
-  defaultGeneralStatusUpdateCallback(TreeNode& tree_node, NodeStatus node_status,
-                                     Optional<general_status::GeneralStatus>& status);
-
   void appendChildGeneralStatus(const Optional<general_status::GeneralStatus>& status);
 
   Optional<general_status::GeneralStatus> general_status_;
-  
+
   GeneralStatusUpdateCallback general_status_update_callback_;
 
-private:  
+private:
   const std::string name_;
 
   NodeStatus status_;
