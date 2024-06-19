@@ -155,8 +155,8 @@ general_status::GeneralStatus buildTreeGeneralStatus(const TreeNode* root_node)
 
 void resetTreeGeneralStatus(TreeNode* root_node)
 {
-  auto visitor = [](TreeNode* root_node) {
-    root_node->resetGeneralStatus();
+  auto visitor = [](TreeNode* node) {
+    node->resetGeneralStatus();
   };
 
   applyRecursiveVisitor(root_node, visitor);
