@@ -53,8 +53,9 @@ NodeStatus ParallelNode::tick()
     }
   }
 
-  size_t success_childred_num = 0;
-  size_t failure_childred_num = 0;
+  size_t success_children_num = 0;
+  size_t failure_children_num = 0;
+  size_t failed_children_highest_priority = children_nodes_.size();
 
   const size_t children_count = children_nodes_.size();
 
@@ -92,9 +93,9 @@ NodeStatus ParallelNode::tick()
         {
           skip_list_.insert(i);
         }
-        success_childred_num++;
+        success_children_num++;
 
-        if (success_childred_num == successThreshold())
+        if (success_children_num == successThreshold())
         {
           skip_list_.clear();
           resetChildren();
@@ -108,14 +109,19 @@ NodeStatus ParallelNode::tick()
         {
           skip_list_.insert(i);
         }
-        failure_childred_num++;
+        if (i < failed_children_highest_priority)
+          failed_children_highest_priority = i;
+
+        failure_children_num++;
 
         // It fails if it is not possible to succeed anymore or if
         // number of failures are equal to failure_threshold_
-        if ((failure_childred_num > children_count - successThreshold()) ||
-            (failure_childred_num == failureThreshold()))
+        if ((failure_children_num > children_count - successThreshold()) ||
+            (failure_children_num == failureThreshold()))
         {
           skip_list_.clear();
+          propagateGeneralStatusFromFailingChild(
+              children_nodes_[failed_children_highest_priority]);
           resetChildren();
           return NodeStatus::FAILURE;
         }

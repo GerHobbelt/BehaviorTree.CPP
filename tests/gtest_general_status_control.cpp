@@ -151,20 +151,30 @@ TEST_F(GeneralStatusControlTest, IfThenElse)
 TEST_F(GeneralStatusControlTest, Parallel)
 {
   // Parallel
-  // There is no propagation in parallel node, because it can have multiple failed children
+  // Priority based propagation in case of multiples failures
   root_ = std::make_unique<BT::ParallelNode>("ParallelNode", -1, 2);
   root_->addChild(actions_[0].get());
   root_->addChild(actions_[1].get());
   root_->addChild(actions_[2].get());
 
-  // 1: A(FAIL) -> B(OK) -> OUTPUT: OK
-  setExpectedResults({NodeStatus::FAILURE, NodeStatus::FAILURE, NodeStatus::SUCCESS});
+  // 1: A(OK), B(FAIL), C(FAIL) -> OUTPUT: FAIL(B)
+  setExpectedResults({NodeStatus::SUCCESS, NodeStatus::FAILURE, NodeStatus::FAILURE});
   runTest({NodeStatus::RUNNING, NodeStatus::FAILURE},
-          BtErrorCodes::BEHAVIOR_TREE_NODE_FAILURE, "1");
+          getExpectedCode(1), "1");
 
-  // 2: A(FAIL) -> B(FAIL) -> OUTPUT: FAIL (B)
+  // 2: A(OK), B(OK), C(OK) -> OUTPUT: OK
   setExpectedResults({NodeStatus::SUCCESS, NodeStatus::SUCCESS, NodeStatus::SUCCESS});
   runTest({NodeStatus::RUNNING, NodeStatus::SUCCESS}, BtErrorCodes::OK, "2");
+
+  // 3: A(FAIL), B(FAIL), C(FAIL) -> OUTPUT: FAIL(A)
+  setExpectedResults({NodeStatus::FAILURE, NodeStatus::FAILURE, NodeStatus::FAILURE});
+  runTest({NodeStatus::RUNNING, NodeStatus::FAILURE},
+          getExpectedCode(0), "3");  
+
+  // 4: A(OK), B(FAIL), C(OK) -> OUTPUT: FAIL(B)
+  setExpectedResults({NodeStatus::SUCCESS, NodeStatus::FAILURE, NodeStatus::SUCCESS});
+  runTest({NodeStatus::RUNNING, NodeStatus::FAILURE},
+          getExpectedCode(1), "4");  
 
   SUCCEED();
 }
