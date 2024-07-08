@@ -109,6 +109,7 @@ Blackboard::createEntryImpl(const std::string &key, const PortInfo& info)
         prev_info.isStronglyTyped() &&
         info.isStronglyTyped())
     {
+      debugMessage();
       throw LogicError("Blackboard: once declared, the type of a port "
                        "shall not change. Previously declared type [",
                        BT::demangle(prev_info.type()), "] != new type [",
