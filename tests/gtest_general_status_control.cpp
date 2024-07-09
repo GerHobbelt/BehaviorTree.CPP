@@ -157,24 +157,22 @@ TEST_F(GeneralStatusControlTest, Parallel)
   root_->addChild(actions_[1].get());
   root_->addChild(actions_[2].get());
 
-  // 1: A(OK), B(FAIL), C(FAIL) -> OUTPUT: FAIL(B)
-  setExpectedResults({NodeStatus::SUCCESS, NodeStatus::FAILURE, NodeStatus::FAILURE});
-  runTest({NodeStatus::RUNNING, NodeStatus::FAILURE},
-          getExpectedCode(1), "1");
+  // 1: A(OK), B(FAIL), C(OK) -> OUTPUT: FAIL(B)
+  setExpectedResults({NodeStatus::SUCCESS, NodeStatus::FAILURE, NodeStatus::SUCCESS});
+  runTest({NodeStatus::RUNNING, NodeStatus::FAILURE}, getExpectedCode(1), "1");
 
   // 2: A(OK), B(OK), C(OK) -> OUTPUT: OK
   setExpectedResults({NodeStatus::SUCCESS, NodeStatus::SUCCESS, NodeStatus::SUCCESS});
   runTest({NodeStatus::RUNNING, NodeStatus::SUCCESS}, BtErrorCodes::OK, "2");
 
-  // 3: A(FAIL), B(FAIL), C(FAIL) -> OUTPUT: FAIL(A)
+  // 3: A(FAIL), B(FAIL), C(FAIL) -> OUTPUT: FAIL(BEHAVIOR_TREE_PARALLEL_NODE_MULTIPLE_FAILURES)
   setExpectedResults({NodeStatus::FAILURE, NodeStatus::FAILURE, NodeStatus::FAILURE});
   runTest({NodeStatus::RUNNING, NodeStatus::FAILURE},
-          getExpectedCode(0), "3");  
+          BtErrorCodes::BEHAVIOR_TREE_PARALLEL_NODE_MULTIPLE_FAILURES, "3");
 
-  // 4: A(OK), B(FAIL), C(OK) -> OUTPUT: FAIL(B)
+  // 4: A(FAIL), B(OK), C(OK) -> OUTPUT: FAIL(A)
   setExpectedResults({NodeStatus::SUCCESS, NodeStatus::FAILURE, NodeStatus::SUCCESS});
-  runTest({NodeStatus::RUNNING, NodeStatus::FAILURE},
-          getExpectedCode(1), "4");  
+  runTest({NodeStatus::RUNNING, NodeStatus::FAILURE}, getExpectedCode(0), "4");
 
   SUCCEED();
 }

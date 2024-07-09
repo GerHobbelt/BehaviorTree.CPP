@@ -55,7 +55,6 @@ NodeStatus ParallelNode::tick()
 
   size_t success_children_num = 0;
   size_t failure_children_num = 0;
-  size_t failed_children_highest_priority = children_nodes_.size();
 
   const size_t children_count = children_nodes_.size();
 
@@ -109,8 +108,6 @@ NodeStatus ParallelNode::tick()
         {
           skip_list_.insert(i);
         }
-        if (i < failed_children_highest_priority)
-          failed_children_highest_priority = i;
 
         failure_children_num++;
 
@@ -120,8 +117,21 @@ NodeStatus ParallelNode::tick()
             (failure_children_num == failureThreshold()))
         {
           skip_list_.clear();
-          propagateGeneralStatusFromFailingChild(
-              children_nodes_[failed_children_highest_priority]);
+          if (failure_children_num == 1)
+          {
+            // in case of single failure, propagate it
+            propagateGeneralStatusFromFailingChild(children_nodes_[i]);
+          }
+          else
+          {
+            // for multiple failures report specialized error code
+            if (!general_status_)
+            {
+              general_status_ = general_status::GeneralStatus();
+            }
+            general_status_.value().status_code_ = general_status::BtErrorCodes::
+                BEHAVIOR_TREE_PARALLEL_NODE_MULTIPLE_FAILURES;
+          }
           resetChildren();
           return NodeStatus::FAILURE;
         }

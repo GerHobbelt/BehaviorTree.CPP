@@ -21,6 +21,7 @@ enum BtErrorCodes : EnumType
 {
   OK = 0,
   BEHAVIOR_TREE_NODE_FAILURE = 2000000,
+  BEHAVIOR_TREE_PARALLEL_NODE_MULTIPLE_FAILURES = 2000001,
 };
 
 struct Timestamp
