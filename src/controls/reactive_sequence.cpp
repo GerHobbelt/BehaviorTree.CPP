@@ -30,12 +30,14 @@ NodeStatus ReactiveSequence::tick()
         // the next time we tick them
         for (size_t i = 0; i < index; i++)
         {
+          appendChildGeneralStatus(children_nodes_[i]->getGeneralStatus());
           haltChild(i);
         }
         return NodeStatus::RUNNING;
       }
 
       case NodeStatus::FAILURE: {
+        propagateGeneralStatusFromFailingChild(current_child_node);
         resetChildren();
         return NodeStatus::FAILURE;
       }
@@ -49,7 +51,6 @@ NodeStatus ReactiveSequence::tick()
       }
     }   // end switch
   }     //end for
-
 
   if (success_count == childrenCount())
   {

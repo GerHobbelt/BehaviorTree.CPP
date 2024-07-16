@@ -100,8 +100,8 @@ public:
       std::function<Optional<NodeStatus>(TreeNode&, NodeStatus)>;
   using PostTickOverrideCallback =
       std::function<Optional<NodeStatus>(TreeNode&, NodeStatus, NodeStatus)>;
-  using GeneralStatusUpdateCallback =
-      std::function<Optional<general_status::GeneralStatus>(TreeNode&, NodeStatus)>;
+  using GeneralStatusUpdateCallback = std::function<void(
+      TreeNode&, NodeStatus, Optional<general_status::GeneralStatus>&)>;
 
   /**
      * @brief subscribeToStatusChange is used to attach a callback to a status change.
@@ -169,7 +169,7 @@ public:
   template <typename T>
   Result setOutput(const std::string& key, const T& value);
 
-  // function provide mostrly for debugging purpose to see the raw value
+  // function provide mostly for debugging purpose to see the raw value
   // in the port (no remapping and no conversion to a type)
   StringView getRawPortValue(const std::string& key) const;
 
@@ -197,6 +197,12 @@ public:
 
   const Optional<general_status::GeneralStatus>& getGeneralStatus() const;
 
+  void resetGeneralStatus();
+
+  static void
+  defaultGeneralStatusUpdateCallback(TreeNode& tree_node, NodeStatus node_status,
+                                     Optional<general_status::GeneralStatus>& status);
+
 protected:
   /// Method to be implemented by the user
   virtual BT::NodeStatus tick() = 0;
@@ -218,7 +224,11 @@ protected:
   /// Equivalent to setStatus(NodeStatus::IDLE)
   void resetStatus();
 
-  static GeneralStatusUpdateCallback getDefaultGeneralStatusUpdateCallback();
+  void appendChildGeneralStatus(const Optional<general_status::GeneralStatus>& status);
+
+  Optional<general_status::GeneralStatus> general_status_;
+
+  GeneralStatusUpdateCallback general_status_update_callback_;
 
 private:
   const std::string name_;
@@ -242,10 +252,6 @@ private:
   PostTickOverrideCallback post_condition_callback_;
 
   std::shared_ptr<WakeUpSignal> wake_up_;
-
-  Optional<general_status::GeneralStatus> general_status_;
-
-  GeneralStatusUpdateCallback general_status_update_callback_;
 };
 
 //-------------------------------------------------------

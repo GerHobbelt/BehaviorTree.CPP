@@ -38,12 +38,12 @@ NodeStatus SequenceStarNode::tick()
         return child_status;
       }
       case NodeStatus::FAILURE: {
+        propagateGeneralStatusFromFailingChild(current_child_node);
         // DO NOT reset current_child_idx_ on failure
         for (size_t i = current_child_idx_; i < childrenCount(); i++)
         {
           haltChild(i);
         }
-
         return child_status;
       }
       case NodeStatus::SUCCESS: {

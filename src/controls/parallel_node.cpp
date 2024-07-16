@@ -53,8 +53,8 @@ NodeStatus ParallelNode::tick()
     }
   }
 
-  size_t success_childred_num = 0;
-  size_t failure_childred_num = 0;
+  size_t success_children_num = 0;
+  size_t failure_children_num = 0;
 
   const size_t children_count = children_nodes_.size();
 
@@ -92,9 +92,9 @@ NodeStatus ParallelNode::tick()
         {
           skip_list_.insert(i);
         }
-        success_childred_num++;
+        success_children_num++;
 
-        if (success_childred_num == successThreshold())
+        if (success_children_num == successThreshold())
         {
           skip_list_.clear();
           resetChildren();
@@ -108,14 +108,30 @@ NodeStatus ParallelNode::tick()
         {
           skip_list_.insert(i);
         }
-        failure_childred_num++;
+
+        failure_children_num++;
 
         // It fails if it is not possible to succeed anymore or if
         // number of failures are equal to failure_threshold_
-        if ((failure_childred_num > children_count - successThreshold()) ||
-            (failure_childred_num == failureThreshold()))
+        if ((failure_children_num > children_count - successThreshold()) ||
+            (failure_children_num == failureThreshold()))
         {
           skip_list_.clear();
+          if (failure_children_num == 1)
+          {
+            // in case of single failure, propagate it
+            propagateGeneralStatusFromFailingChild(children_nodes_[i]);
+          }
+          else
+          {
+            // for multiple failures report specialized error code
+            if (!general_status_)
+            {
+              general_status_ = general_status::GeneralStatus();
+            }
+            general_status_.value().status_code_ = general_status::BtErrorCodes::
+                BEHAVIOR_TREE_PARALLEL_NODE_MULTIPLE_FAILURES;
+          }
           resetChildren();
           return NodeStatus::FAILURE;
         }

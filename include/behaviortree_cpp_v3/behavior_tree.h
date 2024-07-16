@@ -93,10 +93,20 @@ inline NodeType getType()
 
 /**
  * @brief buildTreeGeneralStatus can be used to create a general status message containing all ticked nodes
+ * This function can be used to collect the general status using standalone nodes.
+ * When using BT::Tree, this function is automatically called when BT::Tree is finishing and general_status contains already full information
  *
  * @param root_node
  */
-general_status::GeneralStatus buildTreeGeneralStatus(const TreeNode* node);
+general_status::GeneralStatus buildTreeGeneralStatus(const TreeNode* root_node);
+
+/**
+ * @brief resetTreeGeneralStatus can be used to reset the general status of all nodes in the tree
+ *
+ *
+ * @param root_node
+ */
+void resetTreeGeneralStatus(TreeNode* root_node);
 
 /**
  * Debug function to print the hierarchy of the general status. Prints to std::cout by default.

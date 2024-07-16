@@ -23,17 +23,24 @@ static uint16_t getUID()
 }
 
 TreeNode::TreeNode(std::string name, NodeConfiguration config) :
+  general_status_(nonstd::unexpected_type<std::string>("GeneralStatus not set")),
+  general_status_update_callback_(&TreeNode::defaultGeneralStatusUpdateCallback),
   name_(std::move(name)),
   status_(NodeStatus::IDLE),
   uid_(getUID()),
-  config_(std::move(config)),
-  general_status_(nonstd::unexpected_type<std::string>("GeneralStatus not set")),
-  general_status_update_callback_(getDefaultGeneralStatusUpdateCallback())
+  config_(std::move(config))
 {}
 
 NodeStatus TreeNode::executeTick()
 {
   NodeStatus new_status = status_;
+
+  // Reset General status on first tick after a node is halted
+  if (isHalted())
+  {
+    resetGeneralStatus();
+  }
+
   // a pre-condition may return the new status.
   // In this case it override the actual tick()
   Optional<NodeStatus> pre_condition_result = nonstd::unexpected_type<std::string>("");
@@ -64,7 +71,7 @@ NodeStatus TreeNode::executeTick()
   // Update General status if node operation is completed
   if (StatusCompleted(new_status))
   {
-    general_status_ = general_status_update_callback_(*this, new_status);
+    general_status_update_callback_(*this, new_status, general_status_);
   }
 
   setStatus(new_status);
@@ -256,15 +263,45 @@ const Optional<general_status::GeneralStatus>& TreeNode::getGeneralStatus() cons
   return general_status_;
 }
 
-TreeNode::GeneralStatusUpdateCallback TreeNode::getDefaultGeneralStatusUpdateCallback()
+void TreeNode::resetGeneralStatus()
 {
-  return [](TreeNode& tree_node, NodeStatus node_status) {
-    auto status = general_status::GeneralStatus();
-    status.opt_string_ = tree_node.name() + " - " + toStr(node_status);
-    status.uuid_ = "Tree Node UID: " + std::to_string(tree_node.UID());
-    status.status_code_ = node_status == NodeStatus::SUCCESS ? 0 : 2000000;
-    return status;
-  };
+  general_status_ = nonstd::unexpected_type<std::string>("GeneralStatus not set");
+}
+
+void TreeNode::defaultGeneralStatusUpdateCallback(
+    TreeNode& tree_node, NodeStatus node_status,
+    Optional<general_status::GeneralStatus>& status)
+{
+  // Always override uuid and opt_string. Update status_code if not set previously.
+  if (!status.has_value())
+  {
+    status = general_status::GeneralStatus();
+  }
+  status.value().opt_string_ = "Name: '" + tree_node.name() + "' Type: '" +
+                               toStr(tree_node.type()) + "' Status: '" +
+                               toStr(node_status) + "'";
+  status.value().uuid_ = "Tree Node UID: " + std::to_string(tree_node.UID());
+  if (node_status == NodeStatus::FAILURE &&
+      status.value().status_code_ == general_status::BtErrorCodes::OK)
+  {
+    status.value().status_code_ =
+        general_status::BtErrorCodes::BEHAVIOR_TREE_NODE_FAILURE;
+  }
+}
+
+void TreeNode::appendChildGeneralStatus(
+    const Optional<general_status::GeneralStatus>& status)
+{
+  if (!status.has_value())
+  {
+    throw RuntimeError("The child node for appending has no general status");
+  }
+  if (!general_status_)
+  {
+    general_status_ = general_status::GeneralStatus();
+  }
+  general_status_->underlying_status_messages_.emplace_back(
+      std::make_unique<general_status::GeneralStatus>(status.value().getCopy()));
 }
 
 }   // namespace BT

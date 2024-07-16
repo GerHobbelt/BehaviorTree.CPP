@@ -31,6 +31,7 @@ NodeStatus ReactiveFallback::tick()
         // the next time we tick them
         for (size_t i = 0; i < index; i++)
         {
+          appendChildGeneralStatus(children_nodes_[i]->getGeneralStatus());
           haltChild(i);
         }
         return NodeStatus::RUNNING;
@@ -54,6 +55,10 @@ NodeStatus ReactiveFallback::tick()
 
   if (failure_count == childrenCount())
   {
+    if (!children_nodes_.empty())
+    {
+      propagateGeneralStatusFromFailingChild(children_nodes_.back());
+    }
     resetChildren();
     return NodeStatus::FAILURE;
   }

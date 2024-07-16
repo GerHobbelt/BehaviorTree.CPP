@@ -79,6 +79,10 @@ NodeStatus ManualSelectorNode::tick()
   {
     running_child_idx_ = idx;
   }
+  if (ret == NodeStatus::FAILURE)
+  {
+    propagateGeneralStatusFromFailingChild(children_nodes_[idx]);
+  }
   return ret;
 }
 

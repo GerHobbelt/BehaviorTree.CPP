@@ -46,6 +46,7 @@ NodeStatus SequenceNode::tick()
       }
       case NodeStatus::FAILURE: {
         // Reset on failure
+        propagateGeneralStatusFromFailingChild(current_child_node);
         resetChildren();
         current_child_idx_ = 0;
         return child_status;

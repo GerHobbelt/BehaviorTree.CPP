@@ -53,6 +53,7 @@ NodeStatus RepeatNode::tick()
     {
       case NodeStatus::SUCCESS: {
         repeat_count_++;
+        appendChildGeneralStatus(child_node_->getGeneralStatus());
         resetChild();
       }
       break;

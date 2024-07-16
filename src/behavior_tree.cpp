@@ -113,22 +113,22 @@ void buildSerializedStatusSnapshot(TreeNode* root_node,
   applyRecursiveVisitor(root_node, visitor);
 }
 
-general_status::GeneralStatus buildTreeGeneralStatus(const TreeNode* node)
+general_status::GeneralStatus buildTreeGeneralStatus(const TreeNode* root_node)
 {
-  if (!node)
+  if (!root_node)
   {
     throw LogicError("One of the children of a DecoratorNode or ControlNode is "
                      "nullptr");
   }
-  if (!node->getGeneralStatus().has_value())
+  if (!root_node->getGeneralStatus().has_value())
   {
     throw LogicError("The node has no general status");
   }
 
   general_status::GeneralStatus tree_general_status =
-      node->getGeneralStatus().value().getCopy();
+      root_node->getGeneralStatus().value().getCopy();
 
-  if (auto control = dynamic_cast<const BT::ControlNode*>(node))
+  if (auto control = dynamic_cast<const BT::ControlNode*>(root_node))
   {
     for (const auto& child : control->children())
     {
@@ -140,7 +140,7 @@ general_status::GeneralStatus buildTreeGeneralStatus(const TreeNode* node)
       }
     }
   }
-  else if (auto decorator = dynamic_cast<const BT::DecoratorNode*>(node))
+  else if (auto decorator = dynamic_cast<const BT::DecoratorNode*>(root_node))
   {
     if (decorator->child() && decorator->child()->getGeneralStatus().has_value())
     {
@@ -151,6 +151,15 @@ general_status::GeneralStatus buildTreeGeneralStatus(const TreeNode* node)
   }
 
   return tree_general_status;
+}
+
+void resetTreeGeneralStatus(TreeNode* root_node)
+{
+  auto visitor = [](TreeNode* node) {
+    node->resetGeneralStatus();
+  };
+
+  applyRecursiveVisitor(root_node, visitor);
 }
 
 void printGeneralStatusRecursively(const general_status::GeneralStatus& status,

@@ -60,6 +60,11 @@ NodeStatus FallbackNode::tick()
     current_child_idx_ = 0;
   }
 
+  if (!children_nodes_.empty())
+  {
+    propagateGeneralStatusFromFailingChild(children_nodes_.back());
+  }
+
   return NodeStatus::FAILURE;
 }
 

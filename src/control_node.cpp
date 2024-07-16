@@ -77,4 +77,20 @@ void ControlNode::haltChildren(size_t first)
   }
 }
 
+
+void ControlNode::propagateGeneralStatusFromFailingChild(const TreeNode* failing_child)
+{
+  if (failing_child && failing_child->getGeneralStatus().has_value())
+  {
+    if (!general_status_.has_value())
+    {
+      general_status_ = failing_child->getGeneralStatus().value().getShallowCopy();
+    }
+    else
+    {
+      general_status_->mergeDataShallow(failing_child->getGeneralStatus().value());
+    }
+  }
+}
+
 }   // namespace BT
