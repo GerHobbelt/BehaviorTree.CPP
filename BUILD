@@ -58,7 +58,7 @@ cc_library(
     ],
     deps = [
         "@boost//:coroutine2",
-        "@system_libs//:libzmq",
+        "@cppzmq",
     ],
     visibility = [
         "//visibility:public",
