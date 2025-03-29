@@ -177,6 +177,8 @@ class StatefulActionNode : public ActionNodeBase
       /// when the method halt() is called and the action is RUNNING, this method is invoked.
       /// This is a convenient place todo a cleanup, if needed.
       virtual void onHalted() = 0;
+
+      void setStatus(BT::NodeStatus new_status) override;
 };
 
 

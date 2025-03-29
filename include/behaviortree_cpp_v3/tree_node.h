@@ -167,7 +167,7 @@ class TreeNode
 
     void modifyPortsRemapping(const PortsRemapping& new_remapping);
 
-    void setStatus(NodeStatus new_status);
+    virtual void setStatus(NodeStatus new_status);
 
   private:
     const std::string name_;

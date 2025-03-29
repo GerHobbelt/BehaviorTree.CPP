@@ -12,6 +12,7 @@
 */
 
 #include "behaviortree_cpp_v3/action_node.h"
+#include "event_config.h"
 
 using namespace BT;
 
@@ -163,6 +164,14 @@ void StatefulActionNode::halt()
     onHalted();
   }
   setStatus(NodeStatus::IDLE);
+}
+
+void StatefulActionNode::setStatus(BT::NodeStatus new_status) {
+    auto currentStatus = status();
+    TreeNode::setStatus(new_status);
+    if (currentStatus == NodeStatus::RUNNING && new_status != NodeStatus::RUNNING) {
+        emitSoulEvent(SoulActionDone, {});
+    }
 }
 
 NodeStatus BT::AsyncActionNode::executeTick()
