@@ -14,164 +14,141 @@
 #include "behaviortree_cpp_v3/tree_node.h"
 #include <cstring>
 
-namespace BT
-{
-static uint16_t getUID()
-{
+namespace BT {
     static uint16_t uid = 1;
-    return uid++;
-}
 
-TreeNode::TreeNode(std::string name, NodeConfiguration config)
-  : name_(std::move(name)),
-    status_(NodeStatus::IDLE),
-    uid_(getUID()),
-    config_(std::move(config))
-{
-}
-
-NodeStatus TreeNode::executeTick()
-{
-    const NodeStatus status = tick();
-    setStatus(status);
-    return status;
-}
-
-void TreeNode::setStatus(NodeStatus new_status)
-{
-    NodeStatus prev_status;
-    {
-        std::unique_lock<std::mutex> UniqueLock(state_mutex_);
-        prev_status = status_;
-        status_ = new_status;
+    static uint16_t getUID() {
+        return uid++;
     }
-    if (prev_status != new_status)
-    {
-        state_condition_variable_.notify_all();
-        state_change_signal_.notify(std::chrono::high_resolution_clock::now(), *this, prev_status,
-                                    new_status);
+
+    void resetUID(){
+        uid = 1;
     }
-}
 
-NodeStatus TreeNode::status() const
-{
-    std::lock_guard<std::mutex> lock(state_mutex_);
-    return status_;
-}
-
-NodeStatus TreeNode::waitValidStatus()
-{
-    std::unique_lock<std::mutex> lock(state_mutex_);
-
-    while( isHalted() )
-    {
-        state_condition_variable_.wait(lock);
+    TreeNode::TreeNode(std::string name, NodeConfiguration config)
+            : name_(std::move(name)),
+              status_(NodeStatus::IDLE),
+              uid_(getUID()),
+              config_(std::move(config)) {
     }
-    return status_;
-}
 
-const std::string& TreeNode::name() const
-{
-    return name_;
-}
-
-bool TreeNode::isHalted() const
-{
-    return status_ == NodeStatus::IDLE;
-}
-
-TreeNode::StatusChangeSubscriber
-TreeNode::subscribeToStatusChange(TreeNode::StatusChangeCallback callback)
-{
-    return state_change_signal_.subscribe(std::move(callback));
-}
-
-uint16_t TreeNode::UID() const
-{
-    return uid_;
-}
-
-const std::string& TreeNode::registrationName() const
-{
-    return registration_ID_;
-}
-
-const NodeConfiguration &TreeNode::config() const
-{
-    return config_;
-}
-
-StringView TreeNode::getRawPortValue(const std::string& key) const
-{
-  auto remap_it = config_.input_ports.find(key);
-  if (remap_it == config_.input_ports.end())
-  {
-    throw std::logic_error(StrCat("getInput() failed because "
-      "NodeConfiguration::input_ports "
-      "does not contain the key: [",
-      key, "]"));
-  }
-  return remap_it->second;
-}
-
-bool TreeNode::isBlackboardPointer(StringView str)
-{
-    const auto size = str.size();
-    if( size >= 3 && str.back() == '}')
-    {
-        if( str[0] == '{') {
-            return true;
-        }
-        if( size >= 4 && str[0] == '$' && str[1] == '{') {
-            return true;
-        }
+    NodeStatus TreeNode::executeTick() {
+        const NodeStatus status = tick();
+        setStatus(status);
+        return status;
     }
-    return false;
-}
 
-StringView TreeNode::stripBlackboardPointer(StringView str)
-{
-    const auto size = str.size();
-    if( size >= 3 && str.back() == '}')
-    {
-        if( str[0] == '{') {
-            return str.substr(1, size-2);
-        }
-        if( str[0] == '$' && str[1] == '{') {
-            return str.substr(2, size-3);
-        }
-    }
-    return {};
-}
-
-Optional<StringView> TreeNode::getRemappedKey(StringView port_name, StringView remapping_value)
-{
-    if( remapping_value == "=" )
-    {
-        return {port_name};
-    }
-    if( isBlackboardPointer( remapping_value ) )
-    {
-        return {stripBlackboardPointer(remapping_value)};
-    }
-    return nonstd::make_unexpected("Not a blackboard pointer");
-}
-
-void TreeNode::modifyPortsRemapping(const PortsRemapping &new_remapping)
-{
-    for (const auto& new_it: new_remapping)
-    {
-        auto it = config_.input_ports.find( new_it.first );
-        if( it != config_.input_ports.end() )
+    void TreeNode::setStatus(NodeStatus new_status) {
+        NodeStatus prev_status;
         {
-            it->second = new_it.second;
+            std::unique_lock<std::mutex> UniqueLock(state_mutex_);
+            prev_status = status_;
+            status_ = new_status;
         }
-        it = config_.output_ports.find( new_it.first );
-        if( it != config_.output_ports.end() )
-        {
-            it->second = new_it.second;
+        if (prev_status != new_status) {
+            state_condition_variable_.notify_all();
+            state_change_signal_.notify(std::chrono::high_resolution_clock::now(), *this, prev_status,
+                                        new_status);
         }
     }
-}
+
+    NodeStatus TreeNode::status() const {
+        std::lock_guard<std::mutex> lock(state_mutex_);
+        return status_;
+    }
+
+    NodeStatus TreeNode::waitValidStatus() {
+        std::unique_lock<std::mutex> lock(state_mutex_);
+
+        while (isHalted()) {
+            state_condition_variable_.wait(lock);
+        }
+        return status_;
+    }
+
+    const std::string &TreeNode::name() const {
+        return name_;
+    }
+
+    bool TreeNode::isHalted() const {
+        return status_ == NodeStatus::IDLE;
+    }
+
+    TreeNode::StatusChangeSubscriber
+    TreeNode::subscribeToStatusChange(TreeNode::StatusChangeCallback callback) {
+        return state_change_signal_.subscribe(std::move(callback));
+    }
+
+    uint16_t TreeNode::UID() const {
+        return uid_;
+    }
+
+    const std::string &TreeNode::registrationName() const {
+        return registration_ID_;
+    }
+
+    const NodeConfiguration &TreeNode::config() const {
+        return config_;
+    }
+
+    StringView TreeNode::getRawPortValue(const std::string &key) const {
+        auto remap_it = config_.input_ports.find(key);
+        if (remap_it == config_.input_ports.end()) {
+            throw std::logic_error(StrCat("getInput() failed because "
+                                          "NodeConfiguration::input_ports "
+                                          "does not contain the key: [",
+                                          key, "]"));
+        }
+        return remap_it->second;
+    }
+
+    bool TreeNode::isBlackboardPointer(StringView str) {
+        const auto size = str.size();
+        if (size >= 3 && str.back() == '}') {
+            if (str[0] == '{') {
+                return true;
+            }
+            if (size >= 4 && str[0] == '$' && str[1] == '{') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    StringView TreeNode::stripBlackboardPointer(StringView str) {
+        const auto size = str.size();
+        if (size >= 3 && str.back() == '}') {
+            if (str[0] == '{') {
+                return str.substr(1, size - 2);
+            }
+            if (str[0] == '$' && str[1] == '{') {
+                return str.substr(2, size - 3);
+            }
+        }
+        return {};
+    }
+
+    Optional<StringView> TreeNode::getRemappedKey(StringView port_name, StringView remapping_value) {
+        if (remapping_value == "=") {
+            return {port_name};
+        }
+        if (isBlackboardPointer(remapping_value)) {
+            return {stripBlackboardPointer(remapping_value)};
+        }
+        return nonstd::make_unexpected("Not a blackboard pointer");
+    }
+
+    void TreeNode::modifyPortsRemapping(const PortsRemapping &new_remapping) {
+        for (const auto &new_it: new_remapping) {
+            auto it = config_.input_ports.find(new_it.first);
+            if (it != config_.input_ports.end()) {
+                it->second = new_it.second;
+            }
+            it = config_.output_ports.find(new_it.first);
+            if (it != config_.output_ports.end()) {
+                it->second = new_it.second;
+            }
+        }
+    }
 
 }   // end namespace

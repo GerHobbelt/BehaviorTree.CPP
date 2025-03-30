@@ -22,273 +22,252 @@
 #include "behaviortree_cpp_v3/blackboard.h"
 #include "behaviortree_cpp_v3/utils/strcat.hpp"
 
-#ifdef _MSC_VER 
+#ifdef _MSC_VER
 #pragma warning(disable : 4127) 
 #endif
 
-namespace BT
-{
+namespace BT {
+    void resetUID();
+
 /// This information is used mostly by the XMLParser.
-struct TreeNodeManifest
-{
-    NodeType type;
-    std::string registration_ID;
-    PortsList ports;
-};
+    struct TreeNodeManifest {
+        NodeType type;
+        std::string registration_ID;
+        PortsList ports;
+    };
 
-typedef std::unordered_map<std::string, std::string> PortsRemapping;
+    typedef std::unordered_map<std::string, std::string> PortsRemapping;
 
-struct NodeConfiguration
-{
-    NodeConfiguration()
-    {
-    }
+    struct NodeConfiguration {
+        NodeConfiguration() {
+        }
 
-    Blackboard::Ptr blackboard;
-    PortsRemapping input_ports;
-    PortsRemapping output_ports;
-};
+        Blackboard::Ptr blackboard;
+        PortsRemapping input_ports;
+        PortsRemapping output_ports;
+    };
 
 /// Abstract base class for Behavior Tree Nodes
-class TreeNode
-{
-  public:
-    typedef std::shared_ptr<TreeNode> Ptr;
+    class TreeNode {
+    public:
+        typedef std::shared_ptr<TreeNode> Ptr;
 
-    /**
-     * @brief TreeNode main constructor.
-     *
-     * @param name     name of the instance, not the type.
-     * @param config   information about input/output ports. See NodeConfiguration
-     *
-     * Note: If your custom node has ports, the derived class must implement:
-     *
-     *     static PortsList providedPorts();
-     */
-    TreeNode(std::string name, NodeConfiguration config);
+        /**
+         * @brief TreeNode main constructor.
+         *
+         * @param name     name of the instance, not the type.
+         * @param config   information about input/output ports. See NodeConfiguration
+         *
+         * Note: If your custom node has ports, the derived class must implement:
+         *
+         *     static PortsList providedPorts();
+         */
+        TreeNode(std::string name, NodeConfiguration config);
 
-    virtual ~TreeNode() = default;
+        virtual ~TreeNode() = default;
 
-    /// The method that should be used to invoke tick() and setStatus();
-    virtual BT::NodeStatus executeTick();
+        /// The method that should be used to invoke tick() and setStatus();
+        virtual BT::NodeStatus executeTick();
 
-    /// The method used to interrupt the execution of a RUNNING node.
-    /// Only Async nodes that may return RUNNING should implement it.
-    virtual void halt() = 0;
+        /// The method used to interrupt the execution of a RUNNING node.
+        /// Only Async nodes that may return RUNNING should implement it.
+        virtual void halt() = 0;
 
-    bool isHalted() const;
+        bool isHalted() const;
 
-    NodeStatus status() const;
+        NodeStatus status() const;
 
-    /// Name of the instance, not the type
-    const std::string& name() const;
+        /// Name of the instance, not the type
+        const std::string &name() const;
 
-    /// Blocking function that will sleep until the setStatus() is called with
-    /// either RUNNING, FAILURE or SUCCESS.
-    BT::NodeStatus waitValidStatus();
+        /// Blocking function that will sleep until the setStatus() is called with
+        /// either RUNNING, FAILURE or SUCCESS.
+        BT::NodeStatus waitValidStatus();
 
-    virtual NodeType type() const = 0;
+        virtual NodeType type() const = 0;
 
-    using StatusChangeSignal = Signal<TimePoint, const TreeNode&, NodeStatus, NodeStatus>;
-    using StatusChangeSubscriber = StatusChangeSignal::Subscriber;
-    using StatusChangeCallback = StatusChangeSignal::CallableFunction;
+        using StatusChangeSignal = Signal<TimePoint, const TreeNode &, NodeStatus, NodeStatus>;
+        using StatusChangeSubscriber = StatusChangeSignal::Subscriber;
+        using StatusChangeCallback = StatusChangeSignal::CallableFunction;
 
-    /**
-     * @brief subscribeToStatusChange is used to attach a callback to a status change.
-     * When StatusChangeSubscriber goes out of scope (it is a shared_ptr) the callback
-     * is unsubscribed automatically.
-     *
-     * @param callback The callback to be execute when status change.
-     *
-     * @return the subscriber handle.
-     */
-    StatusChangeSubscriber subscribeToStatusChange(StatusChangeCallback callback);
+        /**
+         * @brief subscribeToStatusChange is used to attach a callback to a status change.
+         * When StatusChangeSubscriber goes out of scope (it is a shared_ptr) the callback
+         * is unsubscribed automatically.
+         *
+         * @param callback The callback to be execute when status change.
+         *
+         * @return the subscriber handle.
+         */
+        StatusChangeSubscriber subscribeToStatusChange(StatusChangeCallback callback);
 
-    // get an unique identifier of this instance of treeNode
-    uint16_t UID() const;
+        // get an unique identifier of this instance of treeNode
+        uint16_t UID() const;
 
-    /// registrationName is the ID used by BehaviorTreeFactory to create an instance.
-    const std::string& registrationName() const;
+        /// registrationName is the ID used by BehaviorTreeFactory to create an instance.
+        const std::string &registrationName() const;
 
-    /// Configuration passed at construction time. Can never change after the
-    /// creation of the TreeNode instance.
-    const NodeConfiguration& config() const;
+        /// Configuration passed at construction time. Can never change after the
+        /// creation of the TreeNode instance.
+        const NodeConfiguration &config() const;
 
-    /** Read an input port, which, in practice, is an entry in the blackboard.
-     * If the blackboard contains a std::string and T is not a string,
-     * convertFromString<T>() is used automatically to parse the text.
-     *
-     * @param key   the identifier (before remapping) of the port.
-     * @return      false if an error occurs.
-     */
-    template <typename T>
-    Result getInput(const std::string& key, T& destination) const;
+        /** Read an input port, which, in practice, is an entry in the blackboard.
+         * If the blackboard contains a std::string and T is not a string,
+         * convertFromString<T>() is used automatically to parse the text.
+         *
+         * @param key   the identifier (before remapping) of the port.
+         * @return      false if an error occurs.
+         */
+        template<typename T>
+        Result getInput(const std::string &key, T &destination) const;
 
-    /** Same as bool getInput(const std::string& key, T& destination)
-     * but using optional.
-     */
-    template <typename T>
-    Optional<T> getInput(const std::string& key) const
-    {
-        T out;
-        auto res = getInput(key, out);
-        return (res) ? Optional<T>(out) : nonstd::make_unexpected(res.error());
-    }
+        /** Same as bool getInput(const std::string& key, T& destination)
+         * but using optional.
+         */
+        template<typename T>
+        Optional<T> getInput(const std::string &key) const {
+            T out;
+            auto res = getInput(key, out);
+            return (res) ? Optional<T>(out) : nonstd::make_unexpected(res.error());
+        }
 
-    template <typename T>
-    Result setOutput(const std::string& key, const T& value);
+        template<typename T>
+        Result setOutput(const std::string &key, const T &value);
 
-    // function provide mostrly for debugging purpose to see the raw value
-    // in the port (no remapping and no conversion to a type)
-    StringView getRawPortValue(const std::string &key) const;
+        // function provide mostrly for debugging purpose to see the raw value
+        // in the port (no remapping and no conversion to a type)
+        StringView getRawPortValue(const std::string &key) const;
 
-    /// Check a string and return true if it matches either one of these
-    /// two patterns:  {...} or ${...}
-    static bool isBlackboardPointer(StringView str);
+        /// Check a string and return true if it matches either one of these
+        /// two patterns:  {...} or ${...}
+        static bool isBlackboardPointer(StringView str);
 
-    static StringView stripBlackboardPointer(StringView str);
+        static StringView stripBlackboardPointer(StringView str);
 
-    static Optional<StringView> getRemappedKey(StringView port_name, StringView remapping_value);
+        static Optional<StringView> getRemappedKey(StringView port_name, StringView remapping_value);
 
-  protected:
-    /// Method to be implemented by the user
-    virtual BT::NodeStatus tick() = 0;
+        virtual void setStatus(NodeStatus new_status);
 
-    friend class BehaviorTreeFactory;
-    friend class DecoratorNode;
-    friend class ControlNode;
-    friend class Tree;
+    protected:
+        /// Method to be implemented by the user
+        virtual BT::NodeStatus tick() = 0;
 
-    // Only BehaviorTreeFactory should call this
-    void setRegistrationID(StringView ID)
-    {
-        registration_ID_.assign(ID.data(), ID.size());
-    }
+        friend class BehaviorTreeFactory;
 
-    void modifyPortsRemapping(const PortsRemapping& new_remapping);
+        friend class DecoratorNode;
 
-    virtual void setStatus(NodeStatus new_status);
+        friend class ControlNode;
 
-  private:
-    const std::string name_;
+        friend class Tree;
 
-    NodeStatus status_;
+        // Only BehaviorTreeFactory should call this
+        void setRegistrationID(StringView ID) {
+            registration_ID_.assign(ID.data(), ID.size());
+        }
 
-    std::condition_variable state_condition_variable_;
+        void modifyPortsRemapping(const PortsRemapping &new_remapping);
 
-    mutable std::mutex state_mutex_;
+    private:
+        const std::string name_;
 
-    StatusChangeSignal state_change_signal_;
+        NodeStatus status_;
 
-    const uint16_t uid_;
+        std::condition_variable state_condition_variable_;
 
-    NodeConfiguration config_;
+        mutable std::mutex state_mutex_;
 
-    std::string registration_ID_;
-};
+        StatusChangeSignal state_change_signal_;
+
+        const uint16_t uid_;
+
+        NodeConfiguration config_;
+
+        std::string registration_ID_;
+    };
 
 //-------------------------------------------------------
-template <typename T>
-inline Result TreeNode::getInput(const std::string& key, T& destination) const
-{
-    auto remap_it = config_.input_ports.find(key);
-    if (remap_it == config_.input_ports.end())
-    {
-        return nonstd::make_unexpected(StrCat("getInput() failed because "
-                                              "NodeConfiguration::input_ports "
-                                              "does not contain the key: [",
-                                              key, "]"));
-    }
-    auto remapped_res = getRemappedKey(key, remap_it->second);
-    try
-    {
-        if (!remapped_res)
-        {
-            destination = convertFromString<T>(remap_it->second);
-            return {};
+    template<typename T>
+    inline Result TreeNode::getInput(const std::string &key, T &destination) const {
+        auto remap_it = config_.input_ports.find(key);
+        if (remap_it == config_.input_ports.end()) {
+            return nonstd::make_unexpected(StrCat("getInput() failed because "
+                                                  "NodeConfiguration::input_ports "
+                                                  "does not contain the key: [",
+                                                  key, "]"));
         }
-        const auto& remapped_key = remapped_res.value();
-
-        if (!config_.blackboard)
-        {
-            return nonstd::make_unexpected("getInput() trying to access a Blackboard(BB) entry, "
-                                           "but BB is invalid");
-        }
-
-        std::unique_lock<std::mutex> entry_lock( config_.blackboard->entryMutex() );
-        const Any* val = config_.blackboard->getAny(static_cast<std::string>(remapped_key));
-        if (val && val->empty() == false)
-        {
-            if (std::is_same<T, std::string>::value == false && val->type() == typeid(std::string))
-            {
-                destination = convertFromString<T>(val->cast<std::string>());
+        auto remapped_res = getRemappedKey(key, remap_it->second);
+        try {
+            if (!remapped_res) {
+                destination = convertFromString<T>(remap_it->second);
+                return {};
             }
-            else
-            {
-                destination = val->cast<T>();
+            const auto &remapped_key = remapped_res.value();
+
+            if (!config_.blackboard) {
+                return nonstd::make_unexpected("getInput() trying to access a Blackboard(BB) entry, "
+                                               "but BB is invalid");
             }
-            return {};
+
+            std::unique_lock<std::mutex> entry_lock(config_.blackboard->entryMutex());
+            const Any *val = config_.blackboard->getAny(static_cast<std::string>(remapped_key));
+            if (val && val->empty() == false) {
+                if (std::is_same<T, std::string>::value == false && val->type() == typeid(std::string)) {
+                    destination = convertFromString<T>(val->cast<std::string>());
+                } else {
+                    destination = val->cast<T>();
+                }
+                return {};
+            }
+
+            return nonstd::make_unexpected(StrCat("getInput() failed because it was unable to find the "
+                                                  "key [",
+                                                  key, "] remapped to [", remapped_key, "]"));
+        }
+        catch (std::exception &err) {
+            return nonstd::make_unexpected(err.what());
+        }
+    }
+
+    template<typename T>
+    inline Result TreeNode::setOutput(const std::string &key, const T &value) {
+        if (!config_.blackboard) {
+            return nonstd::make_unexpected("setOutput() failed: trying to access a "
+                                           "Blackboard(BB) entry, but BB is invalid");
         }
 
-        return nonstd::make_unexpected(StrCat("getInput() failed because it was unable to find the "
-                                              "key [",
-                                              key, "] remapped to [", remapped_key, "]"));
-    }
-    catch (std::exception& err)
-    {
-        return nonstd::make_unexpected(err.what());
-    }
-}
+        auto remap_it = config_.output_ports.find(key);
+        if (remap_it == config_.output_ports.end()) {
+            return nonstd::make_unexpected(StrCat("setOutput() failed: NodeConfiguration::output_ports "
+                                                  "does not "
+                                                  "contain the key: [",
+                                                  key, "]"));
+        }
+        StringView remapped_key = remap_it->second;
+        if (remapped_key == "=") {
+            remapped_key = key;
+        }
+        if (isBlackboardPointer(remapped_key)) {
+            remapped_key = stripBlackboardPointer(remapped_key);
+        }
+        config_.blackboard->set(static_cast<std::string>(remapped_key), value);
 
-template <typename T>
-inline Result TreeNode::setOutput(const std::string& key, const T& value)
-{
-    if (!config_.blackboard)
-    {
-        return nonstd::make_unexpected("setOutput() failed: trying to access a "
-                                       "Blackboard(BB) entry, but BB is invalid");
+        return {};
     }
-
-    auto remap_it = config_.output_ports.find(key);
-    if (remap_it == config_.output_ports.end())
-    {
-        return nonstd::make_unexpected(StrCat("setOutput() failed: NodeConfiguration::output_ports "
-                                              "does not "
-                                              "contain the key: [",
-                                              key, "]"));
-    }
-    StringView remapped_key = remap_it->second;
-    if (remapped_key == "=")
-    {
-        remapped_key = key;
-    }
-    if (isBlackboardPointer(remapped_key))
-    {
-        remapped_key = stripBlackboardPointer(remapped_key);
-    }
-    config_.blackboard->set(static_cast<std::string>(remapped_key), value);
-
-    return {};
-}
 
 // Utility function to fill the list of ports using T::providedPorts();
-template <typename T>
-inline void assignDefaultRemapping(NodeConfiguration& config)
-{
-    for (const auto& it : getProvidedPorts<T>())
-    {
-        const auto& port_name = it.first;
-        const auto direction = it.second.direction();
-        if (direction != PortDirection::BT_OUTPUT)
-        {
-            config.input_ports[port_name] = "=";
-        }
-        if (direction != PortDirection::BT_INPUT)
-        {
-            config.output_ports[port_name] = "=";
+    template<typename T>
+    inline void assignDefaultRemapping(NodeConfiguration &config) {
+        for (const auto &it: getProvidedPorts<T>()) {
+            const auto &port_name = it.first;
+            const auto direction = it.second.direction();
+            if (direction != PortDirection::BT_OUTPUT) {
+                config.input_ports[port_name] = "=";
+            }
+            if (direction != PortDirection::BT_INPUT) {
+                config.output_ports[port_name] = "=";
+            }
         }
     }
-}
 
 }   // namespace BT
 
