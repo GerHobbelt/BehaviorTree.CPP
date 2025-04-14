@@ -147,10 +147,10 @@ NodeStatus StatefulActionNode::tick()
   if( initial_status == NodeStatus::RUNNING )
   {
     NodeStatus new_status = onRunning();
-    if( new_status == NodeStatus::IDLE)
-    {
-      throw std::logic_error("AsyncActionNode2::onRunning() must not return IDLE");
-    }
+//    if( new_status == NodeStatus::IDLE)
+//    {
+//      throw std::logic_error("AsyncActionNode2::onRunning() must not return IDLE");
+//    }
     return new_status;
   }
   //------------------------------------------
