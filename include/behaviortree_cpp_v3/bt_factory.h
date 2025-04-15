@@ -138,12 +138,14 @@ See examples for more information about configuring CMake correctly
 
         Tree(Tree &&other) {
             (*this) = std::move(other);
+            m_uid_start = rootNode()->UID();
         }
 
         Tree &operator=(Tree &&other) {
             nodes = std::move(other.nodes);
             blackboard_stack = std::move(other.blackboard_stack);
             manifests = std::move(other.manifests);
+            m_uid_start = rootNode()->UID();
             return *this;
         }
 
@@ -185,12 +187,16 @@ See examples for more information about configuring CMake correctly
 
         TreeNode::Ptr getNodeByUID(uint16_t uid) {
             /* note: assuming node UID is node index+1 */
-            if (uid <= nodes.size()) {
-                return nodes[uid-1];
+            int index = uid - m_uid_start;
+            if (index < nodes.size()) {
+                return nodes[index];
             } else {
                 return nullptr;
             }
         }
+
+    private:
+        uint16_t m_uid_start = 0;
 
     };
 
