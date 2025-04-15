@@ -132,6 +132,7 @@ void CoroActionNode::halt()
 
 NodeStatus StatefulActionNode::tick()
 {
+    log_d("xxxxx00 %d",status());
   const NodeStatus initial_status = status();
 
   if( initial_status == NodeStatus::IDLE )

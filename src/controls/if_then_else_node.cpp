@@ -11,6 +11,7 @@
 */
 
 #include "behaviortree_cpp_v3/controls/if_then_else_node.h"
+#include "Arduino.h"
 
 
 namespace BT
@@ -27,10 +28,12 @@ void IfThenElseNode::halt()
 {
   child_idx_ = 0;
   ControlNode::halt();
+    log_d("xxxxxx111");
 }
 
 NodeStatus IfThenElseNode::tick()
 {
+    log_d("xxxxxx1");
   const size_t children_count = children_nodes_.size();
 
   if(children_count != 2 && children_count != 3)
@@ -39,13 +42,16 @@ NodeStatus IfThenElseNode::tick()
   }
 
   setStatus(NodeStatus::RUNNING);
+    log_d("xxxxxx2");
 
   if (child_idx_ == 0)
   {
+    log_d("xxxxxx3");
     NodeStatus condition_status = children_nodes_[0]->executeTick();
 
     if (condition_status == NodeStatus::RUNNING)
     {
+    log_d("xxxxxx31");
       return condition_status;
     }
     else if (condition_status == NodeStatus::SUCCESS)
@@ -58,19 +64,23 @@ NodeStatus IfThenElseNode::tick()
         child_idx_ = 2;
       }
       else{
+    log_d("xxxxxx32");
         return condition_status;
       }
     }
   }
+    log_d("xxxxxx4 | %d",child_idx_);
   // not an else
   if (child_idx_ > 0)
   {
     NodeStatus status = children_nodes_[child_idx_]->executeTick();
     if (status == NodeStatus::RUNNING)
     {
+    log_d("xxxxxx5");
       return NodeStatus::RUNNING;
     }
     else{
+    log_d("xxxxxx6 %d",status);
       haltChildren();
       child_idx_ = 0;
       return status;
