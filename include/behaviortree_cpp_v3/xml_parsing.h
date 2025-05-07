@@ -35,7 +35,7 @@ class XMLParser: public Parser
 };
 
 void VerifyXML(const std::string& xml_text,
-               const std::set<std::string> &registered_nodes);
+               const std::set<CustomString> &registered_nodes);
 
 std::string writeTreeNodesModelXML(const BehaviorTreeFactory& factory);
 

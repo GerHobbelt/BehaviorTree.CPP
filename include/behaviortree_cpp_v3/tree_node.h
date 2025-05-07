@@ -21,6 +21,8 @@
 #include "behaviortree_cpp_v3/basic_types.h"
 #include "behaviortree_cpp_v3/blackboard.h"
 #include "behaviortree_cpp_v3/utils/strcat.hpp"
+#include <esp_heap_caps.h>
+#include "CustomContainer.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable : 4127) 
@@ -32,7 +34,7 @@ namespace BT {
 /// This information is used mostly by the XMLParser.
     struct TreeNodeManifest {
         NodeType type;
-        std::string registration_ID;
+        CustomString registration_ID;
         PortsList ports;
     };
 
@@ -49,6 +51,25 @@ namespace BT {
 
 /// Abstract base class for Behavior Tree Nodes
     class TreeNode {
+    public:
+        static void* operator new(std::size_t size) {
+            void* ptr = heap_caps_malloc(size, MALLOC_CAP_SPIRAM);
+            if (!ptr) throw std::bad_alloc();
+            return ptr;
+        }
+
+        static void operator delete(void* ptr) {
+            heap_caps_free(ptr);
+        }
+
+        // Add array versions for completeness
+        static void* operator new[](std::size_t size) {
+            return operator new(size);
+        }
+
+        static void operator delete[](void* ptr) {
+            operator delete(ptr);
+        }
     public:
         typedef std::shared_ptr<TreeNode> Ptr;
 
@@ -78,7 +99,7 @@ namespace BT {
         NodeStatus status() const;
 
         /// Name of the instance, not the type
-        const std::string &name() const;
+        const CustomString &name() const;
 
         /// Blocking function that will sleep until the setStatus() is called with
         /// either RUNNING, FAILURE or SUCCESS.
@@ -168,7 +189,7 @@ namespace BT {
         void modifyPortsRemapping(const PortsRemapping &new_remapping);
 
     private:
-        const std::string name_;
+        const CustomString name_;
 
         NodeStatus status_;
 

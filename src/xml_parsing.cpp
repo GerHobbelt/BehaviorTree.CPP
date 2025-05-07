@@ -52,7 +52,7 @@ struct XMLParser::Pimpl
                                     const Blackboard::Ptr& blackboard,
                                     const TreeNode::Ptr& node_parent);
 
-    void recursivelyCreateTree(const std::string& tree_ID,
+    void recursivelyCreateTree(const CustomString& tree_ID,
                                Tree& output_tree,
                                Blackboard::Ptr blackboard,
                                const TreeNode::Ptr& root_parent);
@@ -62,7 +62,7 @@ struct XMLParser::Pimpl
     void loadDocImpl(BT_TinyXML2::XMLDocument* doc);
 
     std::list<std::unique_ptr<BT_TinyXML2::XMLDocument> > opened_documents;
-    std::unordered_map<std::string,const XMLElement*>  tree_roots;
+    std::unordered_map<CustomString,const XMLElement*>  tree_roots;
 
     const BehaviorTreeFactory& factory;
 
@@ -180,7 +180,7 @@ void XMLParser::Pimpl::loadDocImpl(BT_TinyXML2::XMLDocument* doc)
          bt_node != nullptr;
          bt_node = bt_node->NextSiblingElement("BehaviorTree"))
     {
-        std::string tree_name;
+        CustomString tree_name;
         if (bt_node->Attribute("ID"))
         {
             tree_name = bt_node->Attribute("ID");
@@ -191,7 +191,7 @@ void XMLParser::Pimpl::loadDocImpl(BT_TinyXML2::XMLDocument* doc)
         tree_roots.insert( {tree_name, bt_node} );
     }
 
-    std::set<std::string> registered_nodes;
+    std::set<CustomString> registered_nodes;
     XMLPrinter printer;
     doc->Print(&printer);
     auto xml_text = std::string(printer.CStr(), size_t(printer.CStrSize() - 1));
@@ -209,7 +209,7 @@ void XMLParser::Pimpl::loadDocImpl(BT_TinyXML2::XMLDocument* doc)
 }
 
 void VerifyXML(const std::string& xml_text,
-               const std::set<std::string>& registered_nodes)
+               const std::set<CustomString>& registered_nodes)
 {
 
     BT_TinyXML2::XMLDocument doc;
@@ -432,7 +432,7 @@ Tree XMLParser::instantiateTree(const Blackboard::Ptr& root_blackboard)
 
     XMLElement* xml_root = _p->opened_documents.front()->RootElement();
 
-    std::string main_tree_ID;
+    CustomString main_tree_ID;
     if (xml_root->Attribute("main_tree_to_execute"))
     {
         main_tree_ID = xml_root->Attribute("main_tree_to_execute");
@@ -464,7 +464,7 @@ TreeNode::Ptr XMLParser::Pimpl::createNodeFromXML(const XMLElement *element,
                                                   const TreeNode::Ptr &node_parent)
 {
     const std::string element_name = element->Name();
-    std::string ID;
+    CustomString ID;
     std::string instance_name;
 
     // Actions and Decorators have their own ID
@@ -623,7 +623,7 @@ TreeNode::Ptr XMLParser::Pimpl::createNodeFromXML(const XMLElement *element,
     return child_node;
 }
 
-void BT::XMLParser::Pimpl::recursivelyCreateTree(const std::string& tree_ID,
+void BT::XMLParser::Pimpl::recursivelyCreateTree(const CustomString& tree_ID,
                                                  Tree& output_tree,
                                                  Blackboard::Ptr blackboard,
                                                  const TreeNode::Ptr& root_parent)

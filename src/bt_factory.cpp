@@ -14,6 +14,8 @@
 #include "behaviortree_cpp_v3/utils/shared_library.h"
 #include "behaviortree_cpp_v3/xml_parsing.h"
 
+#include "tools/tools.h"    /* fixme */
+
 #ifdef USING_ROS
 #include "filesystem/path.h"
 #include <ros/package.h>
@@ -73,7 +75,7 @@ BehaviorTreeFactory::BehaviorTreeFactory()
     }
 }
 
-bool BehaviorTreeFactory::unregisterBuilder(const std::string& ID)
+bool BehaviorTreeFactory::unregisterBuilder(const CustomString& ID)
 {
     if( builtinNodes().count(ID) )
     {
@@ -101,7 +103,7 @@ void BehaviorTreeFactory::registerBuilder(const TreeNodeManifest& manifest, cons
     manifests_.insert( {manifest.registration_ID, manifest} );
 }
 
-void BehaviorTreeFactory::registerSimpleCondition(const std::string& ID,
+void BehaviorTreeFactory::registerSimpleCondition(const CustomString& ID,
                                                   const SimpleConditionNode::TickFunctor& tick_functor,
                                                   PortsList ports)
 {
@@ -113,7 +115,7 @@ void BehaviorTreeFactory::registerSimpleCondition(const std::string& ID,
     registerBuilder(manifest, builder);
 }
 
-void BehaviorTreeFactory::registerSimpleAction(const std::string& ID,
+void BehaviorTreeFactory::registerSimpleAction(const CustomString& ID,
                                                const SimpleActionNode::TickFunctor& tick_functor,
                                                PortsList ports)
 {
@@ -125,7 +127,7 @@ void BehaviorTreeFactory::registerSimpleAction(const std::string& ID,
     registerBuilder(manifest, builder);
 }
 
-void BehaviorTreeFactory::registerSimpleDecorator(const std::string& ID,
+void BehaviorTreeFactory::registerSimpleDecorator(const CustomString& ID,
                                                   const SimpleDecoratorNode::TickFunctor& tick_functor,
                                                   PortsList ports)
 {
@@ -217,7 +219,7 @@ void BehaviorTreeFactory::registerFromROSPlugins()
 
 std::unique_ptr<TreeNode> BehaviorTreeFactory::instantiateTreeNode(
         const std::string& name,
-        const std::string& ID,
+        const CustomString& ID,
         const NodeConfiguration& config) const
 {
     auto it = builders_.find(ID);
@@ -236,17 +238,17 @@ std::unique_ptr<TreeNode> BehaviorTreeFactory::instantiateTreeNode(
     return node;
 }
 
-const std::unordered_map<std::string, NodeBuilder> &BehaviorTreeFactory::builders() const
+const CustomUnorederMap<CustomString, NodeBuilder> &BehaviorTreeFactory::builders() const
 {
     return builders_;
 }
 
-const std::unordered_map<std::string,TreeNodeManifest>& BehaviorTreeFactory::manifests() const
+const CustomUnorederMap<CustomString,TreeNodeManifest>& BehaviorTreeFactory::manifests() const
 {
     return manifests_;
 }
 
-const std::set<std::string> &BehaviorTreeFactory::builtinNodes() const
+const CustomSet<CustomString> &BehaviorTreeFactory::builtinNodes() const
 {
     return builtin_IDs_;
 }
@@ -254,10 +256,15 @@ const std::set<std::string> &BehaviorTreeFactory::builtinNodes() const
 Tree BehaviorTreeFactory::createTreeFromText(const std::string &text,
                                              Blackboard::Ptr blackboard)
 {
+
+            log_m("debug-soul-22");
     XMLParser parser(*this);
     parser.loadFromText(text);
+            log_m("debug-soul-23");
     auto tree = parser.instantiateTree(blackboard);
+            log_m("debug-soul-24");
     tree.manifests = this->manifests();
+            log_m("debug-soul-25");
     return tree;
 }
 

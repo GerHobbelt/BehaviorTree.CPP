@@ -21,6 +21,7 @@
 #include <cstring>
 #include <algorithm>
 #include <set>
+#include "CustomContainer.h"
 
 
 #include "behaviortree_cpp_v3/behavior_tree.h"
@@ -74,7 +75,7 @@ namespace BT {
 
     template<typename T>
     inline
-    TreeNodeManifest CreateManifest(const std::string &ID, PortsList portlist = getProvidedPorts<T>()) {
+    TreeNodeManifest CreateManifest(const CustomString &ID, PortsList portlist = getProvidedPorts<T>()) {
         return {getType<T>(), ID, portlist};
     }
 
@@ -113,7 +114,6 @@ See examples for more information about configuring CMake correctly
 
 #endif
 
-
 /**
  * @brief Struct used to store a tree.
  * If this object goes out of scope, the tree is destroyed.
@@ -125,9 +125,9 @@ See examples for more information about configuring CMake correctly
     class Tree {
     public:
 
-        std::vector<TreeNode::Ptr> nodes;
-        std::vector<Blackboard::Ptr> blackboard_stack;
-        std::unordered_map<std::string, TreeNodeManifest> manifests;
+        CustomVector<TreeNode::Ptr> nodes;
+        CustomVector<Blackboard::Ptr> blackboard_stack;
+        CustomUnorederMap<CustomString, TreeNodeManifest> manifests;
 
         Tree() {}
 
@@ -212,7 +212,7 @@ See examples for more information about configuring CMake correctly
         BehaviorTreeFactory();
 
         /// Remove a registered ID.
-        bool unregisterBuilder(const std::string &ID);
+        bool unregisterBuilder(const CustomString &ID);
 
         /// The most generic way to register your own builder.
         void registerBuilder(const TreeNodeManifest &manifest, const NodeBuilder &builder);
@@ -231,7 +231,7 @@ See examples for more information about configuring CMake correctly
         * @param ports         if your SimpleNode requires ports, provide the list here.
         *
         * */
-        void registerSimpleAction(const std::string &ID,
+        void registerSimpleAction(const CustomString &ID,
                                   const SimpleActionNode::TickFunctor &tick_functor,
                                   PortsList ports = {});
 
@@ -243,7 +243,7 @@ See examples for more information about configuring CMake correctly
         * @param ports         if your SimpleNode requires ports, provide the list here.
         *
         * */
-        void registerSimpleCondition(const std::string &ID,
+        void registerSimpleCondition(const CustomString &ID,
                                      const SimpleConditionNode::TickFunctor &tick_functor,
                                      PortsList ports = {});
 
@@ -255,7 +255,7 @@ See examples for more information about configuring CMake correctly
         * @param ports         if your SimpleNode requires ports, provide the list here.
         *
         * */
-        void registerSimpleDecorator(const std::string &ID,
+        void registerSimpleDecorator(const CustomString &ID,
                                      const SimpleDecoratorNode::TickFunctor &tick_functor,
                                      PortsList ports = {});
 
@@ -281,7 +281,7 @@ See examples for more information about configuring CMake correctly
          * @param config   configuration that is passed to the constructor of the TreeNode.
          * @return         new node.
          */
-        std::unique_ptr<TreeNode> instantiateTreeNode(const std::string &name, const std::string &ID,
+        std::unique_ptr<TreeNode> instantiateTreeNode(const std::string &name, const CustomString &ID,
                                                       const NodeConfiguration &config) const;
 
         /** registerNodeType is the method to use to register your custom TreeNode.
@@ -290,7 +290,7 @@ See examples for more information about configuring CMake correctly
          *  ControlNode or ConditionNode.
          */
         template<typename T>
-        void registerNodeType(const std::string &ID) {
+        void registerNodeType(const CustomString &ID) {
             static_assert(std::is_base_of<ActionNodeBase, T>::value ||
                           std::is_base_of<ControlNode, T>::value ||
                           std::is_base_of<DecoratorNode, T>::value ||
@@ -361,13 +361,13 @@ See examples for more information about configuring CMake correctly
         }
 
         /// All the builders. Made available mostly for debug purposes.
-        const std::unordered_map<std::string, NodeBuilder> &builders() const;
+        const CustomUnorederMap<CustomString, NodeBuilder> &builders() const;
 
         /// Manifests of all the registered TreeNodes.
-        const std::unordered_map<std::string, TreeNodeManifest> &manifests() const;
+        const CustomUnorederMap<CustomString, TreeNodeManifest> &manifests() const;
 
         /// List of builtin IDs.
-        const std::set<std::string> &builtinNodes() const;
+        const CustomSet<CustomString> &builtinNodes() const;
 
         Tree createTreeFromText(const std::string &text,
                                 Blackboard::Ptr blackboard = Blackboard::create());
@@ -376,13 +376,12 @@ See examples for more information about configuring CMake correctly
                                 Blackboard::Ptr blackboard = Blackboard::create());
 
     private:
-        std::unordered_map<std::string, NodeBuilder> builders_;
-        std::unordered_map<std::string, TreeNodeManifest> manifests_;
-        std::set<std::string> builtin_IDs_;
+        CustomUnorederMap<CustomString, NodeBuilder> builders_;
+        CustomUnorederMap<CustomString, TreeNodeManifest> manifests_;
+        CustomSet<CustomString> builtin_IDs_;
 
         // clang-format on
     };
-
 
 }   // end namespace
 

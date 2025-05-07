@@ -66,7 +66,7 @@ namespace BT {
         return status_;
     }
 
-    const std::string &TreeNode::name() const {
+    const CustomString &TreeNode::name() const {
         return name_;
     }
 
