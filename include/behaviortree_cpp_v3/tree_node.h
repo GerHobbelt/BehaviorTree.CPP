@@ -49,6 +49,17 @@ namespace BT {
         PortsRemapping output_ports;
     };
 
+    typedef CustomUnorederMap<CustomString , CustomString> PortsRemappingCustom;
+
+    struct NodeConfigurationCustom {
+        NodeConfigurationCustom() {
+        }
+
+        Blackboard::Ptr blackboard;
+        PortsRemappingCustom input_ports;
+        PortsRemappingCustom output_ports;
+    };
+
 /// Abstract base class for Behavior Tree Nodes
     class TreeNode {
     public:
@@ -126,7 +137,7 @@ namespace BT {
         uint16_t UID() const;
 
         /// registrationName is the ID used by BehaviorTreeFactory to create an instance.
-        const std::string &registrationName() const;
+        const CustomString &registrationName() const;
 
         /// Configuration passed at construction time. Can never change after the
         /// creation of the TreeNode instance.
@@ -203,7 +214,7 @@ namespace BT {
 
         NodeConfiguration config_;
 
-        std::string registration_ID_;
+        CustomString registration_ID_;
     };
 
 //-------------------------------------------------------

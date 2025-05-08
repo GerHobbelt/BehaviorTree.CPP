@@ -126,7 +126,7 @@ See examples for more information about configuring CMake correctly
     public:
 
         CustomVector<TreeNode::Ptr> nodes;
-        CustomVector<Blackboard::Ptr> blackboard_stack;
+//        CustomVector<Blackboard::Ptr> blackboard_stack;
         CustomUnorederMap<CustomString, TreeNodeManifest> manifests;
 
         Tree() {}
@@ -143,7 +143,7 @@ See examples for more information about configuring CMake correctly
 
         Tree &operator=(Tree &&other) {
             nodes = std::move(other.nodes);
-            blackboard_stack = std::move(other.blackboard_stack);
+//            blackboard_stack = std::move(other.blackboard_stack);
             manifests = std::move(other.manifests);
             m_uid_start = rootNode()->UID();
             return *this;
@@ -183,7 +183,7 @@ See examples for more information about configuring CMake correctly
 
         ~Tree();
 
-        Blackboard::Ptr rootBlackboard();
+//        Blackboard::Ptr rootBlackboard();
 
         TreeNode::Ptr getNodeByUID(uint16_t uid) {
             /* note: assuming node UID is node index+1 */

@@ -460,7 +460,7 @@ Tree XMLParser::instantiateTree(const Blackboard::Ptr& root_blackboard)
         throw RuntimeError("XMLParser::instantiateTree needs a non-empty root_blackboard");
     }
     // first blackboard
-    output_tree.blackboard_stack.push_back( root_blackboard );
+//    output_tree.blackboard_stack.push_back( root_blackboard );
 
     _p->recursivelyCreateTree(main_tree_ID,
                               output_tree,
@@ -678,14 +678,14 @@ void BT::XMLParser::Pimpl::recursivelyCreateTree(const CustomString& tree_ID,
                         }
                         new_bb->addSubtreeRemapping( attr->Name(), attr->Value() );
                     }
-                    output_tree.blackboard_stack.emplace_back(new_bb);
+//                    output_tree.blackboard_stack.emplace_back(new_bb);
                     recursivelyCreateTree( node->name(), output_tree, new_bb, node );
                 }
             }
             else if( dynamic_cast<const SubtreePlusNode*>(node.get()) )
             {
                 auto new_bb = Blackboard::create(blackboard);
-                output_tree.blackboard_stack.emplace_back(new_bb);
+//                output_tree.blackboard_stack.emplace_back(new_bb);
                 std::set<StringView> mapped_keys;
 
                 bool do_autoremap = false;

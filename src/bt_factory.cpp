@@ -293,14 +293,14 @@ Tree::~Tree()
     haltTree();
 }
 
-Blackboard::Ptr Tree::rootBlackboard()
-{
-    if( blackboard_stack.size() > 0)
-    {
-        return blackboard_stack.front();
-    }
-    return {};
-}
+//Blackboard::Ptr Tree::rootBlackboard()
+//{
+//    if( blackboard_stack.size() > 0)
+//    {
+//        return blackboard_stack.front();
+//    }
+//    return {};
+//}
 
 
 }   // end namespace

@@ -83,7 +83,7 @@ namespace BT {
         return uid_;
     }
 
-    const std::string &TreeNode::registrationName() const {
+    const CustomString &TreeNode::registrationName() const {
         return registration_ID_;
     }
 
