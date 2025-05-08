@@ -21,22 +21,22 @@ namespace BT {
         return uid++;
     }
 
-    void resetUID(){
+    void resetUID() {
         uid = 1;
     }
 
-    NodeConfigurationCustom convertToCustomConfig(const NodeConfiguration &std_config)  {
+    NodeConfigurationCustom convertToCustomConfig(const NodeConfiguration &std_config) {
         NodeConfigurationCustom custom_config;
         custom_config.blackboard = std_config.blackboard;
 
-        auto convertMap = [](const auto& std_map) {
+        auto convertMap = [](const auto &std_map) {
             PortsRemappingCustom custom_map;
             custom_map.reserve(std_map.size());
 
-            for (const auto& [key, value] : std_map) {
+            for (const auto &[key, value]: std_map) {
                 custom_map.emplace(
-                    std::string_view(key),
-                    std::string_view(value)
+                        std::string_view(key),
+                        std::string_view(value)
                 );
             }
             return custom_map;
@@ -48,7 +48,7 @@ namespace BT {
         return custom_config;
     }
 
-    TreeNode::TreeNode(const std::string& name, const NodeConfiguration& config)
+    TreeNode::TreeNode(const std::string &name, const NodeConfiguration &config)
             : name_(name),
               status_(NodeStatus::IDLE),
               uid_(getUID()),
@@ -70,8 +70,14 @@ namespace BT {
         }
         if (prev_status != new_status) {
             state_condition_variable_.notify_all();
+#if BT_USE_SIGNAL
             state_change_signal_.notify(std::chrono::high_resolution_clock::now(), *this, prev_status,
                                         new_status);
+#else
+            if (m_cb) {
+                m_cb(this, prev_status, new_status);
+            }
+#endif
         }
     }
 
@@ -97,10 +103,12 @@ namespace BT {
         return status_ == NodeStatus::IDLE;
     }
 
+#if BT_USE_SIGNAL
     TreeNode::StatusChangeSubscriber
     TreeNode::subscribeToStatusChange(TreeNode::StatusChangeCallback callback) {
         return state_change_signal_.subscribe(std::move(callback));
     }
+#endif
 
     uint16_t TreeNode::UID() const {
         return uid_;

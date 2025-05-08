@@ -81,11 +81,13 @@ inline StatusChangeLogger::StatusChangeLogger(TreeNode* root_node)
         }
     };
 
+#if BT_USE_SIGNAL
     auto visitor = [this, subscribeCallback](TreeNode* node) {
         subscribers_.push_back(node->subscribeToStatusChange(std::move(subscribeCallback)));
     };
 
     applyRecursiveVisitor(root_node, visitor);
+#endif
 }
 }
 

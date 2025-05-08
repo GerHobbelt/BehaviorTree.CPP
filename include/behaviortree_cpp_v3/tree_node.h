@@ -28,6 +28,8 @@
 #pragma warning(disable : 4127) 
 #endif
 
+#define BT_USE_SIGNAL    0
+
 namespace BT {
     void resetUID();
 
@@ -49,7 +51,7 @@ namespace BT {
         PortsRemapping output_ports;
     };
 
-    typedef CustomUnorederMap<CustomString , CustomString> PortsRemappingCustom;
+    typedef CustomUnorederMap<CustomString, CustomString> PortsRemappingCustom;
 
     struct NodeConfigurationCustom {
         NodeConfigurationCustom() {
@@ -60,31 +62,34 @@ namespace BT {
         PortsRemappingCustom output_ports;
     };
 
-    NodeConfigurationCustom convertToCustomConfig(const NodeConfiguration& std_config);
+    NodeConfigurationCustom convertToCustomConfig(const NodeConfiguration &std_config);
 
 /// Abstract base class for Behavior Tree Nodes
     class TreeNode {
     public:
-        static void* operator new(std::size_t size) {
-            void* ptr = heap_caps_malloc(size, MALLOC_CAP_SPIRAM);
+        static void *operator new(std::size_t size) {
+            void *ptr = heap_caps_malloc(size, MALLOC_CAP_SPIRAM);
             if (!ptr) throw std::bad_alloc();
             return ptr;
         }
 
-        static void operator delete(void* ptr) {
+        static void operator delete(void *ptr) {
             heap_caps_free(ptr);
         }
 
         // Add array versions for completeness
-        static void* operator new[](std::size_t size) {
+        static void *operator new[](std::size_t size) {
             return operator new(size);
         }
 
-        static void operator delete[](void* ptr) {
+        static void operator delete[](void *ptr) {
             operator delete(ptr);
         }
+
     public:
         typedef std::shared_ptr<TreeNode> Ptr;
+
+        using StateCallback = std::function<void(TreeNode *, NodeStatus, NodeStatus)>;
 
         /**
          * @brief TreeNode main constructor.
@@ -96,7 +101,7 @@ namespace BT {
          *
          *     static PortsList providedPorts();
          */
-        TreeNode(const std::string& name, const NodeConfiguration& config);
+        TreeNode(const std::string &name, const NodeConfiguration &config);
 
         virtual ~TreeNode() = default;
 
@@ -124,6 +129,7 @@ namespace BT {
         using StatusChangeSubscriber = StatusChangeSignal::Subscriber;
         using StatusChangeCallback = StatusChangeSignal::CallableFunction;
 
+#if BT_USE_SIGNAL
         /**
          * @brief subscribeToStatusChange is used to attach a callback to a status change.
          * When StatusChangeSubscriber goes out of scope (it is a shared_ptr) the callback
@@ -134,6 +140,11 @@ namespace BT {
          * @return the subscriber handle.
          */
         StatusChangeSubscriber subscribeToStatusChange(StatusChangeCallback callback);
+#else
+        void setStateCb(StateCallback cb){
+            m_cb = std::move(cb);
+        }
+#endif
 
         // get an unique identifier of this instance of treeNode
         uint16_t UID() const;
@@ -181,7 +192,6 @@ namespace BT {
         static Optional<StringView> getRemappedKey(StringView port_name, StringView remapping_value);
 
         virtual void setStatus(NodeStatus new_status);
-
     protected:
         /// Method to be implemented by the user
         virtual BT::NodeStatus tick() = 0;
@@ -210,7 +220,11 @@ namespace BT {
 
         mutable std::mutex state_mutex_;
 
+#if BT_USE_SIGNAL
         StatusChangeSignal state_change_signal_;
+#else
+        StateCallback m_cb = nullptr;
+#endif
 
         const uint16_t uid_;
 
