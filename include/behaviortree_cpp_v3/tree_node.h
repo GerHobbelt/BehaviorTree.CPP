@@ -28,7 +28,8 @@
 #pragma warning(disable : 4127) 
 #endif
 
-#define BT_USE_SIGNAL    0
+#define BT_USE_SIGNAL           0
+#define BT_USE_CONDITION        0
 
 namespace BT {
     void resetUID();
@@ -216,7 +217,9 @@ namespace BT {
 
         NodeStatus status_;
 
+#if BT_USE_CONDITION
         std::condition_variable state_condition_variable_;
+#endif
 
         mutable std::mutex state_mutex_;
 

@@ -69,7 +69,9 @@ namespace BT {
             status_ = new_status;
         }
         if (prev_status != new_status) {
+#if BT_USE_CONDITION
             state_condition_variable_.notify_all();
+#endif
 #if BT_USE_SIGNAL
             state_change_signal_.notify(std::chrono::high_resolution_clock::now(), *this, prev_status,
                                         new_status);
@@ -89,9 +91,11 @@ namespace BT {
     NodeStatus TreeNode::waitValidStatus() {
         std::unique_lock<std::mutex> lock(state_mutex_);
 
+#if BT_USE_CONDITION
         while (isHalted()) {
             state_condition_variable_.wait(lock);
         }
+#endif
         return status_;
     }
 
