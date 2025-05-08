@@ -266,15 +266,10 @@ Tree BehaviorTreeFactory::createTreeFromText(const std::string &text,
 Tree BehaviorTreeFactory::createTreeFromText(const CustomString &text,
                                              Blackboard::Ptr blackboard)
 {
-
-            log_m("debug-soul-22");
     XMLParser parser(*this);
     parser.loadFromText(text);
-            log_m("debug-soul-23");
     auto tree = parser.instantiateTree(blackboard);
-            log_m("debug-soul-24");
 //    tree.manifests = this->manifests();
-            log_m("debug-soul-25");
     return tree;
 }
 
