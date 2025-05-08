@@ -25,11 +25,34 @@ namespace BT {
         uid = 1;
     }
 
-    TreeNode::TreeNode(std::string name, NodeConfiguration config)
-            : name_(std::move(name)),
+    NodeConfigurationCustom convertToCustomConfig(const NodeConfiguration &std_config)  {
+        NodeConfigurationCustom custom_config;
+        custom_config.blackboard = std_config.blackboard;
+
+        auto convertMap = [](const auto& std_map) {
+            PortsRemappingCustom custom_map;
+            custom_map.reserve(std_map.size());
+
+            for (const auto& [key, value] : std_map) {
+                custom_map.emplace(
+                    std::string_view(key),
+                    std::string_view(value)
+                );
+            }
+            return custom_map;
+        };
+
+        custom_config.input_ports = convertMap(std_config.input_ports);
+        custom_config.output_ports = convertMap(std_config.output_ports);
+
+        return custom_config;
+    }
+
+    TreeNode::TreeNode(const std::string& name, const NodeConfiguration& config)
+            : name_(name),
               status_(NodeStatus::IDLE),
               uid_(getUID()),
-              config_(std::move(config)) {
+              config_(convertToCustomConfig(config)) {
     }
 
     NodeStatus TreeNode::executeTick() {
@@ -87,12 +110,12 @@ namespace BT {
         return registration_ID_;
     }
 
-    const NodeConfiguration &TreeNode::config() const {
+    const NodeConfigurationCustom &TreeNode::config() const {
         return config_;
     }
 
     StringView TreeNode::getRawPortValue(const std::string &key) const {
-        auto remap_it = config_.input_ports.find(key);
+        auto remap_it = config_.input_ports.find(CustomString(key));
         if (remap_it == config_.input_ports.end()) {
             throw std::logic_error(StrCat("getInput() failed because "
                                           "NodeConfiguration::input_ports "
@@ -140,11 +163,11 @@ namespace BT {
 
     void TreeNode::modifyPortsRemapping(const PortsRemapping &new_remapping) {
         for (const auto &new_it: new_remapping) {
-            auto it = config_.input_ports.find(new_it.first);
+            auto it = config_.input_ports.find(CustomString(new_it.first));
             if (it != config_.input_ports.end()) {
                 it->second = new_it.second;
             }
-            it = config_.output_ports.find(new_it.first);
+            it = config_.output_ports.find(CustomString(new_it.first));
             if (it != config_.output_ports.end()) {
                 it->second = new_it.second;
             }

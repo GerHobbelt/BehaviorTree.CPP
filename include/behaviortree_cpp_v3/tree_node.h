@@ -60,6 +60,8 @@ namespace BT {
         PortsRemappingCustom output_ports;
     };
 
+    NodeConfigurationCustom convertToCustomConfig(const NodeConfiguration& std_config);
+
 /// Abstract base class for Behavior Tree Nodes
     class TreeNode {
     public:
@@ -94,7 +96,7 @@ namespace BT {
          *
          *     static PortsList providedPorts();
          */
-        TreeNode(std::string name, NodeConfiguration config);
+        TreeNode(const std::string& name, const NodeConfiguration& config);
 
         virtual ~TreeNode() = default;
 
@@ -141,7 +143,7 @@ namespace BT {
 
         /// Configuration passed at construction time. Can never change after the
         /// creation of the TreeNode instance.
-        const NodeConfiguration &config() const;
+        const NodeConfigurationCustom &config() const;
 
         /** Read an input port, which, in practice, is an entry in the blackboard.
          * If the blackboard contains a std::string and T is not a string,
@@ -212,7 +214,7 @@ namespace BT {
 
         const uint16_t uid_;
 
-        NodeConfiguration config_;
+        NodeConfigurationCustom config_;
 
         CustomString registration_ID_;
     };
@@ -220,7 +222,7 @@ namespace BT {
 //-------------------------------------------------------
     template<typename T>
     inline Result TreeNode::getInput(const std::string &key, T &destination) const {
-        auto remap_it = config_.input_ports.find(key);
+        auto remap_it = config_.input_ports.find(key.c_str());
         if (remap_it == config_.input_ports.end()) {
             return nonstd::make_unexpected(StrCat("getInput() failed because "
                                                   "NodeConfiguration::input_ports "
@@ -267,7 +269,7 @@ namespace BT {
                                            "Blackboard(BB) entry, but BB is invalid");
         }
 
-        auto remap_it = config_.output_ports.find(key);
+        auto remap_it = config_.output_ports.find(key.c_str());
         if (remap_it == config_.output_ports.end()) {
             return nonstd::make_unexpected(StrCat("setOutput() failed: NodeConfiguration::output_ports "
                                                   "does not "
