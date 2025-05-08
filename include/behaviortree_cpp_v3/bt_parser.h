@@ -24,6 +24,7 @@ class Parser
     virtual void loadFromFile(const std::string& filename) = 0;
 
     virtual void loadFromText(const std::string& xml_text) = 0;
+    virtual void loadFromText(const CustomString & xml_text) = 0;
 
     virtual Tree instantiateTree(const Blackboard::Ptr &root_blackboard) = 0;
 };

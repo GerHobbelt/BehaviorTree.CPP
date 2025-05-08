@@ -372,6 +372,9 @@ See examples for more information about configuring CMake correctly
         Tree createTreeFromText(const std::string &text,
                                 Blackboard::Ptr blackboard = Blackboard::create());
 
+        Tree createTreeFromText(const CustomString &text,
+                                Blackboard::Ptr blackboard = Blackboard::create());
+
         Tree createTreeFromFile(const std::string &file_path,
                                 Blackboard::Ptr blackboard = Blackboard::create());
 

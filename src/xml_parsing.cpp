@@ -123,6 +123,16 @@ void XMLParser::loadFromText(const std::string& xml_text)
     _p->loadDocImpl( doc );
 }
 
+void XMLParser::loadFromText(const CustomString & xml_text)
+{
+    _p->opened_documents.emplace_back(new BT_TinyXML2::XMLDocument());
+
+    BT_TinyXML2::XMLDocument* doc = _p->opened_documents.back().get();
+    doc->Parse(xml_text.c_str(), xml_text.size());
+
+    _p->loadDocImpl( doc );
+}
+
 void XMLParser::Pimpl::loadDocImpl(BT_TinyXML2::XMLDocument* doc)
 {
     if (doc->Error())

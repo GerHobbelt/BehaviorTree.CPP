@@ -24,6 +24,7 @@ class XMLParser: public Parser
     void loadFromFile(const std::string& filename) override;
 
     void loadFromText(const std::string& xml_text) override;
+    void loadFromText(const CustomString & xml_text) override;
 
     Tree instantiateTree(const Blackboard::Ptr &root_blackboard) override;
 
