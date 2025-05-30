@@ -169,9 +169,9 @@ void StatefulActionNode::halt()
 void StatefulActionNode::setStatus(BT::NodeStatus new_status) {
     auto currentStatus = status();
     TreeNode::setStatus(new_status);
-    if (currentStatus == NodeStatus::RUNNING && new_status != NodeStatus::RUNNING) {
-        emitSoulEvent(SoulActionDone, {});
-    }
+//    if (currentStatus == NodeStatus::RUNNING && new_status != NodeStatus::RUNNING) {
+//        emitSoulEvent(SoulActionDone, {});
+//    }
 }
 
 NodeStatus BT::AsyncActionNode::executeTick()
