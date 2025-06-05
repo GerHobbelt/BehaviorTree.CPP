@@ -30,7 +30,7 @@ BehaviorTreeFactory::BehaviorTreeFactory()
     registerNodeType<SequenceNode>("Sequence");
     registerNodeType<SequenceStarNode>("SequenceStar");
     registerNodeType<ReactiveSequence>("ReactiveSequence");
-    registerNodeType<ReactiveFallback>("ReactiveFallback");
+//    registerNodeType<ReactiveFallback>("ReactiveFallback");
 //    registerNodeType<ControlAnim>("ControlAnim");
     registerNodeType<IfThenElseNode>("IfThenElse");
 //    registerNodeType<ReactiveIfThenElse>("ReactiveIfThenElse");
