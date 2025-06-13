@@ -66,6 +66,7 @@ inline StatusChangeLogger::StatusChangeLogger(TreeNode* root_node)
 {
     first_timestamp_ = std::chrono::high_resolution_clock::now();
 
+#if BT_USE_SIGNAL
     auto subscribeCallback = [this](TimePoint timestamp, const TreeNode& node, NodeStatus prev,
                                     NodeStatus status) {
         if (enabled_ && (status != NodeStatus::IDLE || show_transition_to_idle_))
@@ -81,7 +82,6 @@ inline StatusChangeLogger::StatusChangeLogger(TreeNode* root_node)
         }
     };
 
-#if BT_USE_SIGNAL
     auto visitor = [this, subscribeCallback](TreeNode* node) {
         subscribers_.push_back(node->subscribeToStatusChange(std::move(subscribeCallback)));
     };
