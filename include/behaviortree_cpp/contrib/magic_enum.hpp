@@ -392,7 +392,8 @@ constexpr I log2(I value) noexcept {
   static_assert(std::is_integral_v<I>, "magic_enum::detail::log2 requires integral type.");
 
   if constexpr (std::is_same_v<I, bool>) { // bool special case
-    return MAGIC_ENUM_ASSERT(false), value;
+    MAGIC_ENUM_ASSERT(false);
+	return value;
   } else {
     auto ret = I{0};
     for (; value > I{1}; value >>= I{1}, ++ret) {}
@@ -1178,11 +1179,13 @@ template <typename E, detail::enum_subtype S = detail::subtype_v<E>>
   static_assert(detail::is_reflected_v<D, S>, "magic_enum requires enum implementation and valid max and min.");
 
   if constexpr (detail::is_sparse_v<D, S>) {
-    return MAGIC_ENUM_ASSERT(index < detail::count_v<D, S>), detail::values_v<D, S>[index];
+    MAGIC_ENUM_ASSERT(index < detail::count_v<D, S>);
+	return detail::values_v<D, S>[index];
   } else {
     constexpr auto min = (S == detail::enum_subtype::flags) ? detail::log2(detail::min_v<D, S>) : detail::min_v<D, S>;
 
-    return MAGIC_ENUM_ASSERT(index < detail::count_v<D, S>), detail::value<D, min, S>(index);
+    MAGIC_ENUM_ASSERT(index < detail::count_v<D, S>);
+	return detail::value<D, min, S>(index);
   }
 }
 
