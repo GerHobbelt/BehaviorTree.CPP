@@ -14,16 +14,16 @@
 #ifndef BT_FACTORY_H
 #define BT_FACTORY_H
 
+#include "behaviortree_cpp/behavior_tree.h"
+#include "behaviortree_cpp/contrib/json.hpp"
+#include "behaviortree_cpp/contrib/magic_enum.hpp"
+
 #include <filesystem>
 #include <functional>
 #include <memory>
-#include <unordered_map>
 #include <set>
+#include <unordered_map>
 #include <vector>
-
-#include "behaviortree_cpp/contrib/json.hpp"
-#include "behaviortree_cpp/contrib/magic_enum.hpp"
-#include "behaviortree_cpp/behavior_tree.h"
 
 namespace BT
 {
@@ -192,6 +192,8 @@ public:
   }
 
 private:
+  friend class BehaviorTreeFactory;
+
   std::shared_ptr<WakeUpSignal> wake_up_;
 
   enum TickOption
@@ -202,6 +204,11 @@ private:
   };
 
   NodeStatus tickRoot(TickOption opt, std::chrono::milliseconds sleep_time);
+
+  // Fix #1046: re-point each node's NodeConfig::manifest from the
+  // factory's map to the tree's own copy so the pointers remain
+  // valid after the factory is destroyed.
+  void remapManifestPointers();
 
   uint16_t uid_counter_ = 0;
 };
@@ -224,8 +231,8 @@ public:
   BehaviorTreeFactory(const BehaviorTreeFactory& other) = delete;
   BehaviorTreeFactory& operator=(const BehaviorTreeFactory& other) = delete;
 
-  BehaviorTreeFactory(BehaviorTreeFactory&& other) noexcept = default;
-  BehaviorTreeFactory& operator=(BehaviorTreeFactory&& other) noexcept = default;
+  BehaviorTreeFactory(BehaviorTreeFactory&& other) noexcept;
+  BehaviorTreeFactory& operator=(BehaviorTreeFactory&& other) noexcept;
 
   /// Remove a registered ID.
   bool unregisterBuilder(const std::string& ID);

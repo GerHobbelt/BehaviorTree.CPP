@@ -14,12 +14,11 @@
 #ifndef BEHAVIORTREECORE_ACTIONNODE_H
 #define BEHAVIORTREECORE_ACTIONNODE_H
 
+#include "leaf_node.h"
+
 #include <atomic>
-#include <thread>
 #include <future>
 #include <mutex>
-
-#include "leaf_node.h"
 
 namespace BT
 {

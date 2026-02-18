@@ -1,7 +1,9 @@
-#include <gtest/gtest.h>
-#include "behaviortree_cpp/bt_factory.h"
 #include "test_helper.hpp"
+
+#include "behaviortree_cpp/bt_factory.h"
 #include "behaviortree_cpp/loggers/bt_observer.h"
+
+#include <gtest/gtest.h>
 
 using BT::NodeStatus;
 using std::chrono::milliseconds;
@@ -61,7 +63,7 @@ TEST(Reactive, Issue587)
 
   static const char* reactive_xml_text = R"(
 <root BTCPP_format="4" >
-  <BehaviorTree ID="Example A">
+  <BehaviorTree ID="Example_A">
     <Sequence>
       <Script code="test := false"/>
       <ReactiveSequence>

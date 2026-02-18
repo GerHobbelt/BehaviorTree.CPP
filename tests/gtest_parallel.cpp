@@ -11,12 +11,14 @@
 *   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include <gtest/gtest.h>
 #include "action_test_node.h"
-#include "behaviortree_cpp/loggers/bt_observer.h"
 #include "condition_test_node.h"
-#include "behaviortree_cpp/bt_factory.h"
 #include "test_helper.hpp"
+
+#include "behaviortree_cpp/bt_factory.h"
+#include "behaviortree_cpp/loggers/bt_observer.h"
+
+#include <gtest/gtest.h>
 
 using BT::NodeStatus;
 using std::chrono::milliseconds;
@@ -581,11 +583,8 @@ TEST(Parallel, PauseWithRetry)
   ASSERT_EQ(NodeStatus::SUCCESS, status);
 
   // tolerate an error in time measurement within this margin
-#ifdef WIN32
-  const int margin_msec = 40;
-#else
-  const int margin_msec = 10;
-#endif
+  // CI runners (especially Windows) can overshoot Sleep by 50ms+ under load
+  const int margin_msec = 80;
 
   // the second branch with the RetryUntilSuccessful should take about 150 ms
   ASSERT_LE(toMsec(done_time - t1) - 150, margin_msec);

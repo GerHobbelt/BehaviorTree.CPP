@@ -1,11 +1,14 @@
 #include "behaviortree_cpp/basic_types.h"
-#include "behaviortree_cpp/tree_node.h"
-#include "behaviortree_cpp/json_export.h"
 
+#include "behaviortree_cpp/json_export.h"
+#include "behaviortree_cpp/tree_node.h"
+
+#include <algorithm>
+#include <array>
+#include <charconv>
+#include <clocale>
 #include <cstdlib>
 #include <cstring>
-#include <clocale>
-#include <charconv>
 #include <tuple>
 
 namespace BT
@@ -219,6 +222,11 @@ float convertFromString<float>(StringView str)
 template <>
 std::vector<int> convertFromString<std::vector<int>>(StringView str)
 {
+  if(StartWith(str, "json:"))
+  {
+    str.remove_prefix(5);
+    return nlohmann::json::parse(str).get<std::vector<int>>();
+  }
   auto parts = splitString(str, ';');
   std::vector<int> output;
   output.reserve(parts.size());
@@ -232,6 +240,11 @@ std::vector<int> convertFromString<std::vector<int>>(StringView str)
 template <>
 std::vector<double> convertFromString<std::vector<double>>(StringView str)
 {
+  if(StartWith(str, "json:"))
+  {
+    str.remove_prefix(5);
+    return nlohmann::json::parse(str).get<std::vector<double>>();
+  }
   auto parts = splitString(str, ';');
   std::vector<double> output;
   output.reserve(parts.size());
@@ -245,6 +258,11 @@ std::vector<double> convertFromString<std::vector<double>>(StringView str)
 template <>
 std::vector<bool> convertFromString<std::vector<bool>>(StringView str)
 {
+  if(StartWith(str, "json:"))
+  {
+    str.remove_prefix(5);
+    return nlohmann::json::parse(str).get<std::vector<bool>>();
+  }
   auto parts = splitString(str, ';');
   std::vector<bool> output;
   output.reserve(parts.size());
@@ -258,6 +276,11 @@ std::vector<bool> convertFromString<std::vector<bool>>(StringView str)
 template <>
 std::vector<std::string> convertFromString<std::vector<std::string>>(StringView str)
 {
+  if(StartWith(str, "json:"))
+  {
+    str.remove_prefix(5);
+    return nlohmann::json::parse(str).get<std::vector<std::string>>();
+  }
   auto parts = splitString(str, ';');
   std::vector<std::string> output;
   output.reserve(parts.size());
@@ -444,7 +467,13 @@ bool IsAllowedPortName(StringView str)
     return false;
   }
   const char first_char = str.data()[0];
+  // Port name cannot start with a digit
   if(std::isalpha(static_cast<unsigned char>(first_char)) == 0)
+  {
+    return false;
+  }
+  // Check for forbidden characters
+  if(findForbiddenChar(str) != '\0')
   {
     return false;
   }
@@ -468,6 +497,36 @@ bool IsReservedAttribute(StringView str)
     }
   }
   return str == "name" || str == "ID" || str == "_autoremap";
+}
+
+char findForbiddenChar(StringView name)
+{
+  // Forbidden characters that break XML serialization or cause filesystem issues
+  static constexpr std::array<char, 16> kForbiddenChars = {
+    ' ', '\t', '\n', '\r', '<', '>', '&', '"', '\'', '/', '\\', ':', '*', '?', '|', '.'
+  };
+
+  for(const char c : name)
+  {
+    const auto uc = static_cast<unsigned char>(c);
+    // Allow UTF-8 multibyte sequences (high bit set)
+    if(uc >= 0x80)
+    {
+      continue;
+    }
+    // Block control characters (ASCII 0-31 and 127)
+    if(uc < 32 || uc == 127)
+    {
+      return c;
+    }
+    // Check forbidden character list
+    if(std::find(kForbiddenChars.begin(), kForbiddenChars.end(), c) !=
+       kForbiddenChars.end())
+    {
+      return c;
+    }
+  }
+  return '\0';
 }
 
 Any convertFromJSON(StringView json_text, std::type_index type)

@@ -3,6 +3,7 @@
 [![conan Windows](https://github.com/BehaviorTree/BehaviorTree.CPP/actions/workflows/cmake_windows.yml/badge.svg)](https://github.com/BehaviorTree/BehaviorTree.CPP/actions/workflows/cmake_windows.yml)
 [![ros2](https://github.com/BehaviorTree/BehaviorTree.CPP/actions/workflows/ros2.yaml/badge.svg)](https://github.com/BehaviorTree/BehaviorTree.CPP/actions/workflows/ros2.yaml)
 [![pixi (Conda)](https://github.com/BehaviorTree/BehaviorTree.CPP/actions/workflows/pixi.yaml/badge.svg)](https://github.com/BehaviorTree/BehaviorTree.CPP/actions/workflows/pixi.yaml)
+[![codecov](https://codecov.io/github/BehaviorTree/BehaviorTree.CPP/graph/badge.svg)](https://app.codecov.io/github/BehaviorTree/BehaviorTree.CPP)
 
 # BehaviorTree.CPP 4.8
 
@@ -35,7 +36,7 @@ to visualize, record, replay and analyze state transitions.
 
 You can learn about the main concepts, the API and the tutorials here: https://www.behaviortree.dev/
 
-An automatically generated API documentation can be found here: https://BehaviorTree.github.io/BehaviorTree.CPP/
+An automatically generated API documentation can be found here: https://www.behaviortree.dev/
 
 If the documentation doesn't answer your questions and/or you want to
 connect with the other **BT.CPP** users, visit [our forum](https://github.com/BehaviorTree/BehaviorTree.CPP/discussions)
@@ -89,7 +90,19 @@ pixi run build
 If you want to use BT.CPP in your application, please refer to the
 example here: https://github.com/BehaviorTree/btcpp_sample .
 
-# Commercial support
+## Installing BehaviorTree.CPP (vcpkg)
+
+Alternatively, you can build and install behaviortree-cpp using [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager:
+
+    git clone https://github.com/Microsoft/vcpkg.git
+    cd vcpkg
+    ./bootstrap-vcpkg.sh
+    ./vcpkg integrate install
+    ./vcpkg install behaviortree-cpp
+
+The behaviortree-cpp port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
+
+#  Commercial support
 
 Are you using BT.CPP in your commercial product and do you need technical support / consulting?
 You can contact the primary author, **dfaconti@aurynrobotics.com**, to discuss your use case and needs.

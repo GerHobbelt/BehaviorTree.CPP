@@ -12,11 +12,14 @@ set(BT_TESTS
   gtest_enums.cpp
   gtest_factory.cpp
   gtest_fallback.cpp
+  gtest_groot2_publisher.cpp
   gtest_parallel.cpp
   gtest_preconditions.cpp
   gtest_ports.cpp
+  gtest_port_type_rules.cpp
   gtest_postconditions.cpp
   gtest_match.cpp
+  gtest_name_validation.cpp
   gtest_json.cpp
   gtest_reactive.cpp
   gtest_reactive_backchaining.cpp

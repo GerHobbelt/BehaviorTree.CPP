@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16.3) # version on Ubuntu Focal
 
-project(behaviortree_cpp VERSION 4.8.2 LANGUAGES C CXX)
+project(behaviortree_cpp VERSION 4.8.4 LANGUAGES C CXX)
 
 # create compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -260,7 +260,6 @@ target_include_directories(${BTCPP_LIBRARY}
         ${BTCPP_EXTRA_INCLUDE_DIRS}
     )
 
-target_compile_definitions(${BTCPP_LIBRARY} PRIVATE $<$<CONFIG:Debug>:TINYXML2_DEBUG>)
 target_compile_definitions(${BTCPP_LIBRARY} PUBLIC BTCPP_LIBRARY_VERSION="${CMAKE_PROJECT_VERSION}")
 
 target_compile_features(${BTCPP_LIBRARY} PUBLIC cxx_std_17)
@@ -308,17 +307,17 @@ endif()
 
 ######################################################
 # Generate .clangd configuration file for standalone header checking
-file(WRITE ${CMAKE_SOURCE_DIR}/.clangd
+file(WRITE ${PROJECT_SOURCE_DIR}/.clangd
 "CompileFlags:
   Add:
     - -xc++
     - -std=c++17
-    - -I${CMAKE_SOURCE_DIR}/include
-    - -I${CMAKE_SOURCE_DIR}/3rdparty
-    - -I${CMAKE_SOURCE_DIR}/3rdparty/minitrace
-    - -I${CMAKE_SOURCE_DIR}/3rdparty/tinyxml2
-    - -I${CMAKE_SOURCE_DIR}/3rdparty/minicoro
-    - -I${CMAKE_SOURCE_DIR}/3rdparty/lexy/include
+    - -I${PROJECT_SOURCE_DIR}/include
+    - -I${PROJECT_SOURCE_DIR}/3rdparty
+    - -I${PROJECT_SOURCE_DIR}/3rdparty/minitrace
+    - -I${PROJECT_SOURCE_DIR}/3rdparty/tinyxml2
+    - -I${PROJECT_SOURCE_DIR}/3rdparty/minicoro
+    - -I${PROJECT_SOURCE_DIR}/3rdparty/lexy/include
 ")
 
 ######################################################

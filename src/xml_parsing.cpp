@@ -10,6 +10,8 @@
 *   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "behaviortree_cpp/basic_types.h"
+
 #include <cstdio>
 #include <cstring>
 #include <functional>
@@ -19,7 +21,7 @@
 #include <string>
 #include <tuple>
 #include <typeindex>
-#include "behaviortree_cpp/basic_types.h"
+#include <unordered_set>
 
 #if defined(_MSVC_LANG) && !defined(__clang__)
 #define __bt_cplusplus (_MSC_VER == 1900 ? 201103L : _MSVC_LANG)
@@ -39,9 +41,10 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include <map>
 #include "behaviortree_cpp/xml_parsing.h"
+
 #include <filesystem>
+#include <map>
 
 #ifdef USING_ROS2
 #include <ament_index_cpp/get_package_share_directory.hpp>
@@ -91,6 +94,92 @@ namespace
 auto StrEqual = [](const char* str1, const char* str2) -> bool {
   return strcmp(str1, str2) == 0;
 };
+
+// Helper to format forbidden character for error messages
+std::string formatForbiddenChar(char c)
+{
+  if(c < 32 || c == 127)
+  {
+    return "control character (ASCII " + std::to_string(static_cast<int>(c)) + ")";
+  }
+  return std::string("'") + c + "'";
+}
+
+void validateModelName(const std::string& name, int line_number)
+{
+  const auto line_str = std::to_string(line_number);
+  if(name.empty())
+  {
+    throw RuntimeError("Error at line ", line_str,
+                       ": Model/Node type name cannot be empty");
+  }
+  if(name == "Root" || name == "root")
+  {
+    throw RuntimeError("Error at line ", line_str,
+                       ": 'Root' is a reserved name and cannot be used as a node type");
+  }
+  if(char c = findForbiddenChar(name); c != '\0')
+  {
+    throw RuntimeError("Error at line ", line_str, ": Model name '", name,
+                       "' contains forbidden character ", formatForbiddenChar(c));
+  }
+}
+
+void validatePortName(const std::string& name, int line_number)
+{
+  const auto line_str = std::to_string(line_number);
+  if(name.empty())
+  {
+    throw RuntimeError("Error at line ", line_str, ": Port name cannot be empty");
+  }
+  if(std::isdigit(static_cast<unsigned char>(name[0])) != 0)
+  {
+    throw RuntimeError("Error at line ", line_str, ": Port name '", name,
+                       "' cannot start with a digit");
+  }
+  if(char c = findForbiddenChar(name); c != '\0')
+  {
+    throw RuntimeError("Error at line ", line_str, ": Port name '", name,
+                       "' contains forbidden character ", formatForbiddenChar(c));
+  }
+  if(IsReservedAttribute(name))
+  {
+    throw RuntimeError("Error at line ", line_str, ": Port name '", name,
+                       "' is a reserved attribute name");
+  }
+}
+
+void validateInstanceName(const std::string& name, int line_number)
+{
+  // Instance name CAN be empty (defaults to model name)
+  // Instance names are XML attribute VALUES, so they can contain spaces,
+  // periods, and most characters. We only reject control characters that
+  // are invalid in XML.
+  if(name.empty())
+  {
+    return;
+  }
+  for(const char c : name)
+  {
+    const auto uc = static_cast<unsigned char>(c);
+    // Only reject control characters that are invalid in XML
+    // (XML allows tab=0x09, newline=0x0A, carriage return=0x0D)
+    if(uc < 32 && uc != 0x09 && uc != 0x0A && uc != 0x0D)
+    {
+      const auto line_str = std::to_string(line_number);
+      throw RuntimeError("Error at line ", line_str, ": Instance name '", name,
+                         "' contains invalid control character (ASCII ",
+                         std::to_string(static_cast<int>(uc)), ")");
+    }
+    if(uc == 127)
+    {
+      const auto line_str = std::to_string(line_number);
+      throw RuntimeError("Error at line ", line_str, ": Instance name '", name,
+                         "' contains invalid control character (ASCII 127)");
+    }
+  }
+}
+
 }  // namespace
 
 struct SubtreeModel
@@ -108,7 +197,8 @@ struct XMLParser::PImpl
   void recursivelyCreateSubtree(const std::string& tree_ID, const std::string& tree_path,
                                 const std::string& prefix_path, Tree& output_tree,
                                 Blackboard::Ptr blackboard,
-                                const TreeNode::Ptr& root_node);
+                                const TreeNode::Ptr& root_node,
+                                std::unordered_set<std::string>& ancestors);
 
   void getPortsRecursively(const XMLElement* element,
                            std::vector<std::string>& output_ports);
@@ -221,6 +311,8 @@ void BT::XMLParser::PImpl::loadSubtreeModel(const XMLElement* xml_root)
           {
             throw RuntimeError("Missing attribute [name] in port (SubTree model)");
           }
+          // Validate port name
+          validatePortName(name, port_node->GetLineNum());
           if(auto default_value = port_node->Attribute("default"))
           {
             port.setDefaultValue(default_value);
@@ -438,9 +530,16 @@ void VerifyXML(const std::string& xml_text,
   }
 
   // function to be called recursively
-  std::function<void(const XMLElement*)> recursiveStep;
+  constexpr int kMaxNestingDepth = 256;
+  std::function<void(const XMLElement*, int)> recursiveStep;
 
-  recursiveStep = [&](const XMLElement* node) {
+  recursiveStep = [&](const XMLElement* node, int depth) {
+    if(depth > kMaxNestingDepth)
+    {
+      ThrowError(node->GetLineNum(), "Maximum XML nesting depth exceeded (limit: " +
+                                         std::to_string(kMaxNestingDepth) +
+                                         "). The XML is too deeply nested.");
+    }
     const int children_count = ChildrenCount(node);
     const std::string name = node->Name();
     const std::string ID = node->Attribute("ID") != nullptr ? node->Attribute("ID") : "";
@@ -462,6 +561,11 @@ void VerifyXML(const std::string& xml_text,
       {
         ThrowError(line_number, "The tag <BehaviorTree> must have the attribute [ID]");
       }
+      // Validate BehaviorTree ID as a model name
+      if(!ID.empty())
+      {
+        validateModelName(ID, line_number);
+      }
       if(registered_nodes.count(ID) != 0)
       {
         ThrowError(line_number, "The attribute [ID] of tag <BehaviorTree> must not use "
@@ -480,6 +584,8 @@ void VerifyXML(const std::string& xml_text,
         ThrowError(line_number,
                    "<SubTree> with ID '" + ID + "' should not have any child");
       }
+      // Validate SubTree ID as a model name
+      validateModelName(ID, line_number);
       if(registered_nodes.count(ID) != 0)
       {
         ThrowError(line_number, "The attribute [ID] of tag <SubTree> must not use the "
@@ -490,6 +596,11 @@ void VerifyXML(const std::string& xml_text,
     {
       // use ID for builtin node types, otherwise use the element name
       const auto lookup_name = is_builtin ? ID : name;
+      // Validate model name for custom node types (non-builtin element names)
+      if(!is_builtin)
+      {
+        validateModelName(name, line_number);
+      }
       const auto search = registered_nodes.find(lookup_name);
       const bool found = (search != registered_nodes.end());
       if(!found)
@@ -557,14 +668,14 @@ void VerifyXML(const std::string& xml_text,
     for(auto child = node->FirstChildElement(); child != nullptr;
         child = child->NextSiblingElement())
     {
-      recursiveStep(child);
+      recursiveStep(child, depth + 1);
     }
   };
 
   for(auto bt_root = xml_root->FirstChildElement("BehaviorTree"); bt_root != nullptr;
       bt_root = bt_root->NextSiblingElement("BehaviorTree"))
   {
-    recursiveStep(bt_root);
+    recursiveStep(bt_root, 0);
   }
 }
 
@@ -601,8 +712,9 @@ Tree XMLParser::instantiateTree(const Blackboard::Ptr& root_blackboard,
                        "root_blackboard");
   }
 
+  std::unordered_set<std::string> ancestors;
   _p->recursivelyCreateSubtree(main_tree_ID, {}, {}, output_tree, root_blackboard,
-                               TreeNode::Ptr());
+                               TreeNode::Ptr(), ancestors);
   output_tree.initialize();
   return output_tree;
 }
@@ -654,6 +766,12 @@ TreeNode::Ptr XMLParser::PImpl::createNodeFromXML(const XMLElement* element,
   // attribute [name] is present.
   const char* attr_name = element->Attribute("name");
   const std::string instance_name = (attr_name != nullptr) ? attr_name : type_ID;
+
+  // Validate instance name if explicitly provided
+  if(attr_name != nullptr)
+  {
+    validateInstanceName(instance_name, element->GetLineNum());
+  }
 
   const TreeNodeManifest* manifest = nullptr;
 
@@ -759,8 +877,13 @@ TreeNode::Ptr XMLParser::PImpl::createNodeFromXML(const XMLElement* element,
     config.input_ports = port_remap;
     new_node =
         factory->instantiateTreeNode(instance_name, toStr(NodeType::SUBTREE), config);
+    // If a substitution rule replaced the SubTree with a different node
+    // (e.g. a TestNode), the dynamic_cast will return nullptr.
     auto subtree_node = dynamic_cast<SubTreeNode*>(new_node.get());
-    subtree_node->setSubtreeID(type_ID);
+    if(subtree_node != nullptr)
+    {
+      subtree_node->setSubtreeID(type_ID);
+    }
   }
   else
   {
@@ -892,19 +1015,30 @@ TreeNode::Ptr XMLParser::PImpl::createNodeFromXML(const XMLElement* element,
   return new_node;
 }
 
-void BT::XMLParser::PImpl::recursivelyCreateSubtree(const std::string& tree_ID,
-                                                    const std::string& tree_path,
-                                                    const std::string& prefix_path,
-                                                    Tree& output_tree,
-                                                    Blackboard::Ptr blackboard,
-                                                    const TreeNode::Ptr& root_node)
+void BT::XMLParser::PImpl::recursivelyCreateSubtree(
+    const std::string& tree_ID, const std::string& tree_path,
+    const std::string& prefix_path, Tree& output_tree, Blackboard::Ptr blackboard,
+    const TreeNode::Ptr& root_node, std::unordered_set<std::string>& ancestors)
 {
+  if(!ancestors.insert(tree_ID).second)
+  {
+    throw RuntimeError("Recursive behavior tree cycle detected: tree '", tree_ID,
+                       "' references itself (directly or indirectly)");
+  }
+  constexpr int kMaxNestingDepth = 256;
   std::function<void(const TreeNode::Ptr&, Tree::Subtree::Ptr, std::string,
-                     const XMLElement*)>
+                     const XMLElement*, int)>
       recursiveStep;
 
   recursiveStep = [&](TreeNode::Ptr parent_node, Tree::Subtree::Ptr subtree,
-                      std::string prefix, const XMLElement* element) {
+                      std::string prefix, const XMLElement* element, int depth) {
+    if(depth > kMaxNestingDepth)
+    {
+      throw RuntimeError("Maximum XML nesting depth exceeded during tree "
+                         "instantiation (limit: ",
+                         std::to_string(kMaxNestingDepth),
+                         "). The XML is too deeply nested.");
+    }
     // create the node
     auto node = createNodeFromXML(element, blackboard, parent_node, prefix, output_tree);
     subtree->nodes.push_back(node);
@@ -915,7 +1049,7 @@ void BT::XMLParser::PImpl::recursivelyCreateSubtree(const std::string& tree_ID,
       for(auto child_element = element->FirstChildElement(); child_element != nullptr;
           child_element = child_element->NextSiblingElement())
       {
-        recursiveStep(node, subtree, prefix, child_element);
+        recursiveStep(node, subtree, prefix, child_element, depth + 1);
       }
     }
     else  // special case: SubTreeNode
@@ -1010,10 +1144,24 @@ void BT::XMLParser::PImpl::recursivelyCreateSubtree(const std::string& tree_ID,
         subtree_path += subtree_ID + "::" + std::to_string(node->UID());
       }
 
+      // Check if the path already exists - duplicate paths cause issues in Groot2
+      // and TreeObserver (see Groot2 issue #56)
+      for(const auto& sub : output_tree.subtrees)
+      {
+        if(sub->instance_name == subtree_path)
+        {
+          throw RuntimeError("Duplicate SubTree path detected: '", subtree_path,
+                             "'. Multiple SubTree nodes with the same 'name' attribute "
+                             "under the same parent are not allowed. "
+                             "Please use unique names or omit the 'name' attribute "
+                             "to auto-generate unique paths.");
+        }
+      }
+
       recursivelyCreateSubtree(subtree_ID,
                                subtree_path,        // name
                                subtree_path + "/",  //prefix
-                               output_tree, new_bb, node);
+                               output_tree, new_bb, node, ancestors);
     }
   };
 
@@ -1034,7 +1182,8 @@ void BT::XMLParser::PImpl::recursivelyCreateSubtree(const std::string& tree_ID,
   new_tree->tree_ID = tree_ID;
   output_tree.subtrees.push_back(new_tree);
 
-  recursiveStep(root_node, new_tree, prefix_path, root_element);
+  recursiveStep(root_node, new_tree, prefix_path, root_element, 0);
+  ancestors.erase(tree_ID);
 }
 
 void XMLParser::PImpl::getPortsRecursively(const XMLElement* element,

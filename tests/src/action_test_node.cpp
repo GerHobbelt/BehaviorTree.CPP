@@ -12,7 +12,9 @@
 */
 
 #include "action_test_node.h"
+
 #include <string>
+#include <thread>
 
 BT::AsyncActionTest::AsyncActionTest(const std::string& name, BT::Duration deadline_ms)
   : ThreadedAction(name, {}), success_count_(0), failure_count_(0)

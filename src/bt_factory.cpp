@@ -10,11 +10,13 @@
 *   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include <filesystem>
 #include "behaviortree_cpp/bt_factory.h"
+
 #include "behaviortree_cpp/utils/shared_library.h"
 #include "behaviortree_cpp/utils/wildcards.hpp"
 #include "behaviortree_cpp/xml_parsing.h"
+
+#include <filesystem>
 
 namespace BT
 {
@@ -103,6 +105,10 @@ BehaviorTreeFactory::BehaviorTreeFactory() : _p(new PImpl)
 }
 
 BehaviorTreeFactory::~BehaviorTreeFactory() = default;
+
+BehaviorTreeFactory::BehaviorTreeFactory(BehaviorTreeFactory&& other) noexcept = default;
+BehaviorTreeFactory&
+BehaviorTreeFactory::operator=(BehaviorTreeFactory&& other) noexcept = default;
 
 bool BehaviorTreeFactory::unregisterBuilder(const std::string& ID)
 {
@@ -348,6 +354,7 @@ Tree BehaviorTreeFactory::createTreeFromText(const std::string& text,
   parser.loadFromText(text);
   auto tree = parser.instantiateTree(blackboard);
   tree.manifests = this->manifests();
+  tree.remapManifestPointers();
   return tree;
 }
 
@@ -367,6 +374,7 @@ Tree BehaviorTreeFactory::createTreeFromFile(const std::filesystem::path& file_p
   parser.loadFromFile(file_path);
   auto tree = parser.instantiateTree(blackboard);
   tree.manifests = this->manifests();
+  tree.remapManifestPointers();
   return tree;
 }
 
@@ -375,6 +383,7 @@ Tree BehaviorTreeFactory::createTree(const std::string& tree_name,
 {
   auto tree = _p->parser->instantiateTree(blackboard, tree_name);
   tree.manifests = this->manifests();
+  tree.remapManifestPointers();
   return tree;
 }
 
@@ -424,29 +433,34 @@ void BehaviorTreeFactory::loadSubstitutionRuleFromJSON(const std::string& json_t
 
   std::unordered_map<std::string, TestNodeConfig> configs;
 
-  auto test_configs = json.at("TestNodeConfigs");
-  for(auto const& [name, test_config] : test_configs.items())
+  // TestNodeConfigs is optional: users may only have string-based
+  // substitution rules that map to already-registered node types.
+  if(json.contains("TestNodeConfigs"))
   {
-    auto& config = configs[name];
+    auto test_configs = json.at("TestNodeConfigs");
+    for(auto const& [name, test_config] : test_configs.items())
+    {
+      auto& config = configs[name];
 
-    auto return_status = test_config.at("return_status").get<std::string>();
-    config.return_status = convertFromString<NodeStatus>(return_status);
-    if(test_config.contains("async_delay"))
-    {
-      config.async_delay =
-          std::chrono::milliseconds(test_config["async_delay"].get<int>());
-    }
-    if(test_config.contains("post_script"))
-    {
-      config.post_script = test_config["post_script"].get<std::string>();
-    }
-    if(test_config.contains("success_script"))
-    {
-      config.success_script = test_config["success_script"].get<std::string>();
-    }
-    if(test_config.contains("failure_script"))
-    {
-      config.failure_script = test_config["failure_script"].get<std::string>();
+      auto return_status = test_config.at("return_status").get<std::string>();
+      config.return_status = convertFromString<NodeStatus>(return_status);
+      if(test_config.contains("async_delay"))
+      {
+        config.async_delay =
+            std::chrono::milliseconds(test_config["async_delay"].get<int>());
+      }
+      if(test_config.contains("post_script"))
+      {
+        config.post_script = test_config["post_script"].get<std::string>();
+      }
+      if(test_config.contains("success_script"))
+      {
+        config.success_script = test_config["success_script"].get<std::string>();
+      }
+      if(test_config.contains("failure_script"))
+      {
+        config.failure_script = test_config["failure_script"].get<std::string>();
+      }
     }
   }
 
@@ -473,6 +487,25 @@ BehaviorTreeFactory::substitutionRules() const
 }
 
 Tree::Tree() = default;
+
+void Tree::remapManifestPointers()
+{
+  for(auto& subtree : subtrees)
+  {
+    for(auto& node : subtree->nodes)
+    {
+      const auto* old_manifest = node->config().manifest;
+      if(old_manifest != nullptr)
+      {
+        auto it = manifests.find(old_manifest->registration_ID);
+        if(it != manifests.end())
+        {
+          node->config().manifest = &(it->second);
+        }
+      }
+    }
+  }
+}
 
 void Tree::initialize()
 {
