@@ -3,10 +3,8 @@
 #include <filesystem>
 #include "behaviortree_cpp/loggers/abstract_logger.h"
 
-namespace sqlite
-{
-class Connection;
-}
+// forward declaration
+struct sqlite3;
 
 namespace BT
 {
@@ -57,7 +55,12 @@ public:
    */
   SqliteLogger(const Tree& tree, std::filesystem::path const& file, bool append = false);
 
-  virtual ~SqliteLogger() override;
+  ~SqliteLogger() override;
+
+  SqliteLogger(const SqliteLogger&) = delete;
+  SqliteLogger& operator=(const SqliteLogger&) = delete;
+  SqliteLogger(SqliteLogger&&) = delete;
+  SqliteLogger& operator=(SqliteLogger&&) = delete;
 
   // You can inject a function that add a string to the Transitions table,
   // in the column "extra_data".
@@ -74,7 +77,7 @@ public:
   virtual void flush() override;
 
 private:
-  std::unique_ptr<sqlite::Connection> db_;
+  sqlite3* db_ = nullptr;
 
   int64_t monotonic_timestamp_ = 0;
   std::unordered_map<const BT::TreeNode*, int64_t> starting_time_;

@@ -1,14 +1,18 @@
 #include "behaviortree_cpp/blackboard.h"
+#include <tuple>
 #include <unordered_set>
 #include "behaviortree_cpp/json_export.h"
 
 namespace BT
 {
 
+namespace
+{
 bool IsPrivateKey(StringView str)
 {
   return str.size() >= 1 && str.data()[0] == '_';
 }
+}  // namespace
 
 void Blackboard::enableAutoRemapping(bool remapping)
 {
@@ -40,6 +44,7 @@ const Any* Blackboard::getAny(const std::string& key) const
 
 Any* Blackboard::getAny(const std::string& key)
 {
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
   return const_cast<Any*>(getAnyLocked(key).get());
 }
 
@@ -52,11 +57,13 @@ Blackboard::getEntry(const std::string& key) const
     return rootBlackboard()->getEntry(key.substr(1, key.size() - 1));
   }
 
-  std::unique_lock<std::mutex> lock(mutex_);
-  auto it = storage_.find(key);
-  if(it != storage_.end())
   {
-    return it->second;
+    const std::unique_lock<std::mutex> storage_lock(storage_mutex_);
+    auto it = storage_.find(key);
+    if(it != storage_.end())
+    {
+      return it->second;
+    }
   }
   // not found. Try autoremapping
   if(auto parent = parent_bb_.lock())
@@ -109,7 +116,6 @@ void Blackboard::debugMessage() const
   {
     std::cout << "[" << from << "] remapped to port of parent tree [" << to << "]"
               << std::endl;
-    continue;
   }
 }
 
@@ -130,7 +136,7 @@ std::vector<StringView> Blackboard::getKeys() const
 
 void Blackboard::clear()
 {
-  std::unique_lock<std::mutex> lock(mutex_);
+  const std::unique_lock<std::mutex> storage_lock(storage_mutex_);
   storage_.clear();
 }
 
@@ -157,14 +163,17 @@ void Blackboard::createEntry(const std::string& key, const TypeInfo& info)
 
 void Blackboard::cloneInto(Blackboard& dst) const
 {
-  std::unique_lock lk1(mutex_);
-  std::unique_lock lk2(dst.mutex_);
+  // Lock both mutexes without risking lock-order inversion.
+  std::unique_lock<std::mutex> lk1(storage_mutex_, std::defer_lock);
+  std::unique_lock<std::mutex> lk2(dst.storage_mutex_, std::defer_lock);
+  std::lock(lk1, lk2);
 
   // keys that are not updated must be removed.
   std::unordered_set<std::string> keys_to_remove;
   auto& dst_storage = dst.storage_;
-  for(const auto& [key, _] : dst_storage)
+  for(const auto& [key, entry] : dst_storage)
   {
+    std::ignore = entry;  // unused in this loop
     keys_to_remove.insert(key);
   }
 
@@ -212,7 +221,7 @@ Blackboard::Ptr Blackboard::parent()
 std::shared_ptr<Blackboard::Entry> Blackboard::createEntryImpl(const std::string& key,
                                                                const TypeInfo& info)
 {
-  std::unique_lock<std::mutex> lock(mutex_);
+  const std::unique_lock<std::mutex> storage_lock(storage_mutex_);
   // This function might be called recursively, when we do remapping, because we move
   // to the top scope to find already existing  entries
 
@@ -269,7 +278,7 @@ nlohmann::json ExportBlackboardToJSON(const Blackboard& blackboard)
   nlohmann::json dest;
   for(auto entry_name : blackboard.getKeys())
   {
-    std::string name(entry_name);
+    const std::string name(entry_name);
     if(auto any_ref = blackboard.getAnyLocked(name))
     {
       if(auto any_ptr = any_ref.get())
@@ -298,19 +307,10 @@ void ImportBlackboardFromJSON(const nlohmann::json& json, Blackboard& blackboard
   }
 }
 
-Blackboard::Entry& Blackboard::Entry::operator=(const Entry& other)
-{
-  value = other.value;
-  info = other.info;
-  string_converter = other.string_converter;
-  sequence_id = other.sequence_id;
-  stamp = other.stamp;
-  return *this;
-}
-
 Blackboard* BT::Blackboard::rootBlackboard()
 {
   auto bb = static_cast<const Blackboard&>(*this).rootBlackboard();
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
   return const_cast<Blackboard*>(bb);
 }
 

@@ -2,6 +2,86 @@
 Changelog for package behaviortree_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.8.2 (2025-10-30)
+------------------
+* Merge pull request `#996 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/996>`_ from EnjoyRobotics/make-sequence-node-inheritable
+* Merge branch 'master' of github.com:BehaviorTree/BehaviorTree.CPP
+* fix issue `#1034 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/1034>`_
+* Merge pull request `#1030 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/1030>`_ from pleemann/tree_wake_up
+  Event-based tree ticking
+* force tinyxml2_vendor in ROS2. See `#1033 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/1033>`_ and `#1028 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/1028>`_
+* added Tree::emitWakeUpSignal
+* Lint
+* Propagate node config to parent
+* Make tick method protected
+* Contributors: Davide Faconti, pleemann, redvinaa
+
+4.8.1 (2025-10-23)
+------------------
+
+4.8.0 (2025-10-14)
+------------------
+* fix issue in destruction order
+* fix memory leak
+* fix thread safety issues
+* Improve error message
+* Leave a note for posterity
+* Fix windows builds
+* Do not fail fast. We want results of both sanitizer runs
+* Combine sanitizer actions into a single file
+* use gtest_discover_tests to regiester the unit tests
+  this modern approach registers many individual tests instead of a single monolitic test
+  so if one fails the rest continue running which allows the developer to flag multiple
+  failing tests on a single run
+  It also speeds up testing since tests run in parallel
+* Add support for sanitizers including some GHAs
+* Remove unused conan.cmake (`#1016 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/1016>`_)
+* Improve handling of dependencies (`#1012 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/1012>`_)
+* update tinyxml to version 11.0
+* fix potential compilation errors
+* compile for c++ 17 (`#1013 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/1013>`_)
+* Contributors: Davide Faconti, Eric Riff
+
+4.7.3 (2025-10-01)
+------------------
+* remove cpp-sqlite
+* update cppzmq to 4.11.0
+* remove wildcards from 3rd party
+* Clean up VerifyXML logic (`#1000 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/1000>`_)
+  * Refactor VerifyXML to clarify logic
+  - Reduces duplication in VerifyXML by handling the ID check for built-in
+  node types up front so they can then be definitively looked up in the
+  registered nodes.
+  - Enhances error messaging in VerifyXML by using *either* the node name
+  *or* the ID, depending on which is appropriate, instead of leaving
+  users guessing "which Decorator is wrong"
+  - Fixes custom Action and Condition nodes using shorthand syntax not
+  being properly verified
+  - Fixes `<Control ID="ReactiveSequence"/>` not being verified with the
+  same logic as `<ReactiveSequence/>`
+  - Fixes `<Action ID="MyAction"/>` not triggering a behavior lookup when
+  `<MyAction/>` would.
+  * fix tests that were failing due to bad assumptions
+* Append SQLite3_INCLUDE_DIRS to BTCPP_EXTRA_INCLUDE_DIRS, otherwise sqlite3.h won't be found (`#1002 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/1002>`_)
+  Co-authored-by: alejandro.suarez@omron.com <alejandro.suarez@omron.com>
+* fix: use dynamically growing error buffer in ParseScript (`#1007 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/1007>`_)
+  * fix: use dynamically growing error buffer in ParseScript
+  * style: format code
+  * fix: use dynamically growing error buffer in ValidateScript
+  ---------
+  Co-authored-by: ahuo <ahuo2865189826@gmail.com>
+* fix: validate __type field before accessing in fromJson (`#1009 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/1009>`_)
+  Co-authored-by: ahuo <ahuo2865189826@gmail.com>
+* fix: check path attribute before using (`#1005 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/1005>`_)
+  Co-authored-by: ahuo <ahuo2865189826@gmail.com>
+* Set current_child_idx of SequenceNode protected (`#991 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/991>`_)
+* Add convertFromString<vector<bool>> (`#992 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/992>`_)
+* Update README.md fix `#985 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/985>`_
+  Duuuude
+* fix: exclude 3rd party libraries from sonar issue tracking (`#984 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/984>`_)
+* change CI file
+* Contributors: Alejandro Suárez, Davide Faconti, Ezra Brooks, Marcus Ebner von Eschenbach, Shaur(ya) Kumar, Vince Reda, Yiyi Wang
+
 4.7.2 (2025-05-29)
 ------------------
 * Fix issue `#978 <https://github.com/BehaviorTree/BehaviorTree.CPP/issues/978>`_ : skipped was not working properly

@@ -1,4 +1,4 @@
-/*  Copyright (C) 2022 Davide Faconti -  All Rights Reserved
+/*  Copyright (C) 2022-2025 Davide Faconti -  All Rights Reserved
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
 *   to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -27,7 +27,12 @@ public:
     loadExecutor();
   }
 
-  virtual ~PreconditionNode() override = default;
+  ~PreconditionNode() override = default;
+
+  PreconditionNode(const PreconditionNode&) = delete;
+  PreconditionNode& operator=(const PreconditionNode&) = delete;
+  PreconditionNode(PreconditionNode&&) = delete;
+  PreconditionNode& operator=(PreconditionNode&&) = delete;
 
   static PortsList providedPorts()
   {
@@ -42,7 +47,7 @@ private:
   {
     loadExecutor();
 
-    BT::NodeStatus else_return;
+    BT::NodeStatus else_return = NodeStatus::FAILURE;
     if(!getInput("else", else_return))
     {
       throw RuntimeError("Missing parameter [else] in Precondition");

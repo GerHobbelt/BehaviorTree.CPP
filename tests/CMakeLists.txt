@@ -29,6 +29,7 @@ set(BT_TESTS
   gtest_updates.cpp
   gtest_wakeup.cpp
   gtest_interface.cpp
+  gtest_simple_string.cpp
 
   script_parser_test.cpp
   test_helper.hpp
@@ -43,18 +44,30 @@ if(ament_cmake_FOUND)
 
 else()
 
-    find_package(GTest REQUIRED)
-
     enable_testing()
+
+    find_package(GTest REQUIRED)
+    include(GoogleTest)
+
     add_executable(behaviortree_cpp_test ${BT_TESTS})
-    add_test(NAME btcpp_test COMMAND behaviortree_cpp_test)
 
     target_link_libraries(behaviortree_cpp_test
         GTest::gtest
         GTest::gtest_main)
 
+    # gtest_discover_tests queries the test executable for available tests and registers them on ctest individually
+    # On Windows it needs a little help to find the shared libraries
+    if(WIN32)
+        gtest_discover_tests(behaviortree_cpp_test
+            DISCOVERY_MODE PRE_TEST
+            DISCOVERY_ENVIRONMENT "PATH=$<TARGET_FILE_DIR:behaviortree_cpp_test>;$ENV{PATH}"
+        )
+    else()
+        gtest_discover_tests(behaviortree_cpp_test)
+    endif()
+
 endif()
 
+target_include_directories(behaviortree_cpp_test PRIVATE include)
 target_link_libraries(behaviortree_cpp_test ${BTCPP_LIBRARY} bt_sample_nodes foonathan::lexy)
-target_include_directories(behaviortree_cpp_test PRIVATE include ${PROJECT_SOURCE_DIR}/3rdparty)
 target_compile_definitions(behaviortree_cpp_test PRIVATE BT_TEST_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}")

@@ -1,5 +1,5 @@
 /* Copyright (C) 2018 Michele Colledanchise -  All Rights Reserved
- * Copyright (C) 2018-2023 Davide Faconti - All Rights Reserved
+ * Copyright (C) 2018-2025 Davide Faconti - All Rights Reserved
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
 *   to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -21,6 +21,7 @@
 #include <set>
 #include <vector>
 
+#include "behaviortree_cpp/contrib/json.hpp"
 #include "behaviortree_cpp/contrib/magic_enum.hpp"
 #include "behaviortree_cpp/behavior_tree.h"
 
@@ -77,8 +78,10 @@ inline TreeNodeManifest CreateManifest(const std::string& ID,
 * See examples in sample_nodes directory.
 */
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage,bugprone-macro-parentheses)
 #define BT_REGISTER_NODES(factory)                                                       \
   BTCPP_EXPORT void BT_RegisterNodesFromPlugin(BT::BehaviorTreeFactory& factory)
+// NOLINTEND(cppcoreguidelines-macro-usage,bugprone-macro-parentheses)
 
 constexpr const char* PLUGIN_SYMBOL = "BT_RegisterNodesFromPlugin";
 
@@ -119,13 +122,19 @@ public:
   [[nodiscard]] TreeNode* rootNode() const;
 
   /**
-    * @brief Sleep for a certain amount of time. This sleep could be interrupted by the method TreeNode::emitWakeUpSignal()
+    * @brief Sleep for a certain amount of time. This sleep could be interrupted by the methods
+    * TreeNode::emitWakeUpSignal() or Tree::emitWakeUpSignal()
     *
     * @param timeout  duration of the sleep
     * @return         true if the timeout was NOT reached and the signal was received.
     *
     * */
   bool sleep(std::chrono::system_clock::duration timeout);
+
+  /**
+   * @brief Wake up the tree. This will interrupt the sleep() method.
+   */
+  void emitWakeUpSignal();
 
   ~Tree();
 

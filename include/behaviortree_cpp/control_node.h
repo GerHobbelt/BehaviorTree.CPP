@@ -1,5 +1,5 @@
 /* Copyright (C) 2015-2018 Michele Colledanchise -  All Rights Reserved
- * Copyright (C) 2018-2020 Davide Faconti, Eurecat -  All Rights Reserved
+ * Copyright (C) 2018-2025 Davide Faconti, Eurecat -  All Rights Reserved
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
 *   to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -26,7 +26,12 @@ protected:
 public:
   ControlNode(const std::string& name, const NodeConfig& config);
 
-  virtual ~ControlNode() override = default;
+  ~ControlNode() override = default;
+
+  ControlNode(const ControlNode&) = delete;
+  ControlNode& operator=(const ControlNode&) = delete;
+  ControlNode(ControlNode&&) = delete;
+  ControlNode& operator=(ControlNode&&) = delete;
 
   /// The method used to add nodes to the children vector
   void addChild(TreeNode* child);
