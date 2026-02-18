@@ -41,6 +41,7 @@
 #pragma GCC diagnostic pop
 #endif
 
+#include "behaviortree_cpp/utils/polymorphic_cast_registry.hpp"
 #include "behaviortree_cpp/xml_parsing.h"
 
 #include <filesystem>
@@ -180,12 +181,45 @@ void validateInstanceName(const std::string& name, int line_number)
   }
 }
 
-}  // namespace
-
 struct SubtreeModel
 {
   std::unordered_map<std::string, BT::PortInfo> ports;
 };
+
+void parseSubtreeModelPorts(const XMLElement* sub_node, SubtreeModel& subtree_model)
+{
+  const std::pair<const char*, PortDirection> port_types[3] = {
+    { "input_port", PortDirection::INPUT },
+    { "output_port", PortDirection::OUTPUT },
+    { "inout_port", PortDirection::INOUT }
+  };
+
+  for(const auto& [name, direction] : port_types)
+  {
+    for(auto port_node = sub_node->FirstChildElement(name); port_node != nullptr;
+        port_node = port_node->NextSiblingElement(name))
+    {
+      PortInfo port(direction);
+      auto port_name = port_node->Attribute("name");
+      if(port_name == nullptr)
+      {
+        throw RuntimeError("Missing attribute [name] in port (SubTree model)");
+      }
+      validatePortName(port_name, port_node->GetLineNum());
+      if(auto default_value = port_node->Attribute("default"))
+      {
+        port.setDefaultValue(default_value);
+      }
+      if(auto description = port_node->Attribute("description"))
+      {
+        port.setDescription(description);
+      }
+      subtree_model.ports[port_name] = std::move(port);
+    }
+  }
+}
+
+}  // namespace
 
 struct XMLParser::PImpl
 {
@@ -292,38 +326,12 @@ void BT::XMLParser::PImpl::loadSubtreeModel(const XMLElement* xml_root)
         sub_node = sub_node->NextSiblingElement("SubTree"))
     {
       auto subtree_id = sub_node->Attribute("ID");
-      auto& subtree_model = subtree_models[subtree_id];
-
-      const std::pair<const char*, BT::PortDirection> port_types[3] = {
-        { "input_port", BT::PortDirection::INPUT },
-        { "output_port", BT::PortDirection::OUTPUT },
-        { "inout_port", BT::PortDirection::INOUT }
-      };
-
-      for(const auto& [name, direction] : port_types)
+      if(subtree_id == nullptr)
       {
-        for(auto port_node = sub_node->FirstChildElement(name); port_node != nullptr;
-            port_node = port_node->NextSiblingElement(name))
-        {
-          BT::PortInfo port(direction);
-          auto name = port_node->Attribute("name");
-          if(name == nullptr)
-          {
-            throw RuntimeError("Missing attribute [name] in port (SubTree model)");
-          }
-          // Validate port name
-          validatePortName(name, port_node->GetLineNum());
-          if(auto default_value = port_node->Attribute("default"))
-          {
-            port.setDefaultValue(default_value);
-          }
-          if(auto description = port_node->Attribute("description"))
-          {
-            port.setDescription(description);
-          }
-          subtree_model.ports[name] = std::move(port);
-        }
+        throw RuntimeError("Missing attribute 'ID' in SubTree element "
+                           "within TreeNodesModel");
       }
+      parseSubtreeModelPorts(sub_node, subtree_models[subtree_id]);
     }
   }
 }
@@ -625,6 +633,11 @@ void VerifyXML(const std::string& xml_text,
         {
           ThrowError(line_number, std::string("The node '") + registered_name +
                                       "' must have 1 or more children");
+        }
+        if(registered_name == "TryCatch" && children_count < 2)
+        {
+          ThrowError(line_number, std::string("The node 'TryCatch' must have "
+                                              "at least 2 children"));
         }
         if(registered_name == "ReactiveSequence")
         {
@@ -928,9 +941,21 @@ TreeNode::Ptr XMLParser::PImpl::createNodeFromXML(const XMLElement* element,
         if(auto prev_info = blackboard->entryInfo(port_key))
         {
           // Check consistency of types.
-          bool const port_type_mismatch =
+          bool port_type_mismatch =
               (prev_info->isStronglyTyped() && port_info.isStronglyTyped() &&
                prev_info->type() != port_info.type());
+
+          // Allow polymorphic cast for INPUT ports (Issue #943)
+          // If a registered conversion exists (upcast or downcast), allow the
+          // connection. Downcasts use dynamic_pointer_cast and may fail at runtime.
+          if(port_type_mismatch && port_info.direction() == PortDirection::INPUT)
+          {
+            if(factory->polymorphicCastRegistry().isConvertible(prev_info->type(),
+                                                                port_info.type()))
+            {
+              port_type_mismatch = false;
+            }
+          }
 
           // special case related to convertFromString
           bool const string_input = (prev_info->type() == typeid(std::string));
@@ -1055,6 +1080,8 @@ void BT::XMLParser::PImpl::recursivelyCreateSubtree(
     else  // special case: SubTreeNode
     {
       auto new_bb = Blackboard::create(blackboard);
+      // Inherit polymorphic cast registry from factory (Issue #943)
+      new_bb->setPolymorphicCastRegistry(factory->polymorphicCastRegistryPtr());
       const std::string subtree_ID = element->Attribute("ID");
       std::unordered_map<std::string, std::string> subtree_remapping;
       bool do_autoremap = false;

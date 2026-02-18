@@ -6,13 +6,16 @@
 namespace BT
 {
 DelayNode::DelayNode(const std::string& name, unsigned milliseconds)
-  : DecoratorNode(name, {}), timer_id_(0), msec_(milliseconds)
+  : DecoratorNode(name, {})
+  , timer_id_(0)
+  , msec_(milliseconds)
+  , read_parameter_from_ports_(false)
 {
   setRegistrationID("Delay");
 }
 
 DelayNode::DelayNode(const std::string& name, const NodeConfig& config)
-  : DecoratorNode(name, config), timer_id_(0), msec_(0)
+  : DecoratorNode(name, config), timer_id_(0), msec_(0), read_parameter_from_ports_(true)
 {}
 
 void DelayNode::halt()

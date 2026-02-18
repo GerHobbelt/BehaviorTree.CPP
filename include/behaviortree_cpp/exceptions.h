@@ -16,6 +16,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include "utils/strcat.hpp"
 
@@ -65,6 +66,48 @@ public:
   template <typename... SV>
   RuntimeError(const SV&... args) : BehaviorTreeException(args...)
   {}
+};
+
+/// Information about a node in the tick backtrace.
+struct TickBacktraceEntry
+{
+  std::string node_name;
+  std::string node_path;
+  std::string registration_name;
+};
+
+/// Exception thrown when a node's tick() method throws an exception.
+/// Contains information about the node where the exception originated.
+class NodeExecutionError : public RuntimeError
+{
+public:
+  NodeExecutionError(TickBacktraceEntry failed_node, const std::string& original_message)
+    : RuntimeError(formatMessage(failed_node, original_message))
+    , failed_node_(std::move(failed_node))
+    , original_message_(original_message)
+  {}
+
+  /// The node that threw the exception
+  [[nodiscard]] const TickBacktraceEntry& failedNode() const
+  {
+    return failed_node_;
+  }
+
+  [[nodiscard]] const std::string& originalMessage() const
+  {
+    return original_message_;
+  }
+
+private:
+  TickBacktraceEntry failed_node_;
+  std::string original_message_;
+
+  static std::string formatMessage(const TickBacktraceEntry& node,
+                                   const std::string& original_msg)
+  {
+    return StrCat("Exception in node '", node.node_path, "' [", node.registration_name,
+                  "]: ", original_msg);
+  }
 };
 
 }  // namespace BT

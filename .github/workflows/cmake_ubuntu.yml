@@ -8,6 +8,10 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   BUILD_TYPE: Release
 
@@ -51,6 +55,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0  # Full history needed by SonarCloud
 
     - name: Install lcov
       run: sudo apt-get update && sudo apt-get install -y lcov
@@ -83,8 +89,9 @@ jobs:
       run: |
         lcov --capture --directory build/Debug \
              --output-file coverage.info \
-             --ignore-errors mismatch \
-             --ignore-errors negative
+             --ignore-errors mismatch,mismatch \
+             --ignore-errors negative,negative \
+             --ignore-errors gcov,gcov
         lcov --extract coverage.info \
              '*/BehaviorTree.CPP/include/*' \
              '*/BehaviorTree.CPP/src/*' \
@@ -96,8 +103,32 @@ jobs:
              --ignore-errors unused
         lcov --list coverage.info
 
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v5
+    # - name: Upload coverage reports to Codecov
+    #   uses: codecov/codecov-action@v5
+    #   continue-on-error: true
+    #   with:
+    #     files: coverage.info
+    #     flags: unittests
+    #     disable_search: true
+    #     disable_file_fixes: false
+    #     plugins: noop
+    #     network_filter: >-
+    #       include/behaviortree_cpp/,src/
+    #     token: ${{ secrets.CODECOV_TOKEN }}
+
+    # --- Coveralls ---
+    - name: Upload to Coveralls
+      uses: coverallsapp/github-action@v2
+      continue-on-error: true
       with:
-        files: coverage.info
-        token: ${{ secrets.CODECOV_TOKEN }}
+        file: coverage.info
+        format: lcov
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    # --- SonarCloud ---
+    - name: Run SonarCloud analysis
+      uses: SonarSource/sonarcloud-github-action@v5
+      continue-on-error: true
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -12,9 +12,11 @@
 
 using namespace BT;
 
+namespace
+{
 // clang-format off
 
-static const char* xml_text = R"(
+const char* xml_text = R"(
 
 <root BTCPP_format="4" >
 
@@ -51,7 +53,7 @@ static const char* xml_text = R"(
 </root>
         )";
 
-static const char* xml_text_subtree = R"(
+const char* xml_text_subtree = R"(
 
 <root BTCPP_format="4" main_tree_to_execute="MainTree" >
 
@@ -79,7 +81,7 @@ static const char* xml_text_subtree = R"(
 
 </root>  )";
 
-static const char* xml_text_subtree_part1 = R"(
+const char* xml_text_subtree_part1 = R"(
 
 <root BTCPP_format="4">
   <BehaviorTree ID="MainTree">
@@ -90,7 +92,7 @@ static const char* xml_text_subtree_part1 = R"(
   </BehaviorTree>
 </root>  )";
 
-static const char* xml_text_subtree_part2 = R"(
+const char* xml_text_subtree_part2 = R"(
 
 <root BTCPP_format="4">
   <BehaviorTree ID="DoorClosedSubtree">
@@ -105,6 +107,7 @@ static const char* xml_text_subtree_part2 = R"(
 </root>  )";
 
 // clang-format on
+}  // namespace
 
 TEST(BehaviorTreeFactory, NotRegisteredNode)
 {
@@ -189,9 +192,11 @@ TEST(BehaviorTreeFactory, Issue7)
   EXPECT_THROW(parser.loadFromText(xml_text_issue), RuntimeError);
 }
 
+namespace
+{
 // clang-format off
 
-static const char* xml_ports_subtree = R"(
+const char* xml_ports_subtree = R"(
 
 <root BTCPP_format="4" main_tree_to_execute="MainTree">
 
@@ -217,6 +222,7 @@ static const char* xml_ports_subtree = R"(
 </root> )";
 
 // clang-format on
+}  // namespace
 
 TEST(BehaviorTreeFactory, SubTreeWithRemapping)
 {
@@ -268,6 +274,8 @@ TEST(BehaviorTreeFactory, SubTreeWithRemapping)
   ASSERT_FALSE(talk_bb->getAnyLocked("talk_out"));
 }
 
+namespace
+{
 std::string FilePath(const std::filesystem::path& relative_path)
 {
   // clang-format off
@@ -285,6 +293,7 @@ std::string FilePath(const std::filesystem::path& relative_path)
   }
   return {};
 }
+}  // namespace
 
 TEST(BehaviorTreeFactory, CreateTreeFromFile)
 {
@@ -398,6 +407,8 @@ TEST(BehaviorTreeReload, ReloadSameTree)
   }
 }
 
+namespace
+{
 KeyValueVector makeTestMetadata()
 {
   return {
@@ -405,6 +416,7 @@ KeyValueVector makeTestMetadata()
     std::make_pair<std::string, std::string>("bar", "42"),
   };
 }
+}  // namespace
 
 class ActionWithMetadata : public SyncActionNode
 {
@@ -548,7 +560,7 @@ TEST(BehaviorTreeFactory, FactoryDestroyedBeforeTick)
     {
       const auto* manifest_ptr =
           static_cast<const BT::TreeNode*>(node.get())->config().manifest;
-      if(manifest_ptr)
+      if(manifest_ptr != nullptr)
       {
         auto it = tree.manifests.find(manifest_ptr->registration_ID);
         ASSERT_NE(it, tree.manifests.end());
@@ -571,6 +583,41 @@ TEST(BehaviorTreeFactory, FactoryDestroyedBeforeTick)
 // In v4 the parser was rewritten, but the recursive validation and
 // instantiation paths can still overflow the stack with deeply nested
 // input.  The fix adds a depth limit.
+
+// Regression test for issue #880:
+// createTreeFromText should be able to reference subtrees that were
+// previously registered via registerBehaviorTreeFromText/FromFile.
+TEST(BehaviorTreeFactory, CreateTreeFromTextFindsRegisteredSubtree)
+{
+  // Step 1: register a subtree definition
+  const char* subtree_xml = R"(
+  <root BTCPP_format="4">
+    <BehaviorTree ID="MyTree">
+      <AlwaysSuccess/>
+    </BehaviorTree>
+  </root>)";
+
+  BehaviorTreeFactory factory;
+  factory.registerBehaviorTreeFromText(subtree_xml);
+
+  // Verify "MyTree" is registered
+  ASSERT_EQ(factory.registeredBehaviorTrees().size(), 1);
+
+  // Step 2: use createTreeFromText with XML that references the
+  // registered subtree via <SubTree ID="MyTree"/>
+  const char* main_xml = R"(
+  <root BTCPP_format="4">
+    <BehaviorTree ID="TestTree">
+      <SubTree ID="MyTree"/>
+    </BehaviorTree>
+  </root>)";
+
+  // This should NOT throw. Before the fix it throws:
+  //   "Can't find a tree with name: MyTree"
+  Tree tree;
+  ASSERT_NO_THROW(tree = factory.createTreeFromText(main_xml));
+  ASSERT_EQ(NodeStatus::SUCCESS, tree.tickWhileRunning());
+}
 
 TEST(BehaviorTreeFactory, MalformedXML_InvalidRoot)
 {

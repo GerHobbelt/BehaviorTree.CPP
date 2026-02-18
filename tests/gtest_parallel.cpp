@@ -44,8 +44,12 @@ struct SimpleParallelTest : testing::Test
     root.addChild(&condition_2);
     root.addChild(&action_2);
   }
-  ~SimpleParallelTest() override
-  {}
+  ~SimpleParallelTest() override = default;
+
+  SimpleParallelTest(const SimpleParallelTest&) = delete;
+  SimpleParallelTest& operator=(const SimpleParallelTest&) = delete;
+  SimpleParallelTest(SimpleParallelTest&&) = delete;
+  SimpleParallelTest& operator=(SimpleParallelTest&&) = delete;
 };
 
 struct ComplexParallelTest : testing::Test
@@ -90,8 +94,12 @@ struct ComplexParallelTest : testing::Test
     parallel_left.setSuccessThreshold(3);
     parallel_right.setSuccessThreshold(1);
   }
-  ~ComplexParallelTest() override
-  {}
+  ~ComplexParallelTest() override = default;
+
+  ComplexParallelTest(const ComplexParallelTest&) = delete;
+  ComplexParallelTest& operator=(const ComplexParallelTest&) = delete;
+  ComplexParallelTest(ComplexParallelTest&&) = delete;
+  ComplexParallelTest& operator=(ComplexParallelTest&&) = delete;
 };
 
 /****************TESTS START HERE***************************/
@@ -518,7 +526,7 @@ TEST(Parallel, Issue593)
   using namespace BT;
 
   BehaviorTreeFactory factory;
-  std::array<int, 1> counters;
+  std::array<int, 1> counters = {};
   RegisterTestTick(factory, "Test", counters);
 
   auto tree = factory.createTreeFromText(xml_text);
@@ -590,4 +598,107 @@ TEST(Parallel, PauseWithRetry)
   ASSERT_LE(toMsec(done_time - t1) - 150, margin_msec);
   // the whole process should take about 300 milliseconds
   ASSERT_LE(toMsec(t2 - t1) - 300, margin_msec * 2);
+}
+
+// Issue #819: Demonstrates that Sequence does NOT re-evaluate conditions
+// while a sibling action is RUNNING, whereas ReactiveSequence DOES.
+// This is expected behavior, not a bug.
+TEST(Parallel, Issue819_SequenceVsReactiveSequence)
+{
+  using namespace BT;
+
+  // Test 1: Regular Sequence - condition NOT re-evaluated
+  {
+    static const char* xml_text = R"(
+<root BTCPP_format="4">
+  <BehaviorTree ID="TestTree">
+    <Parallel success_count="2" failure_count="1">
+      <Sequence>
+        <TestCondition name="cond1"/>
+        <Sleep msec="200"/>
+      </Sequence>
+      <Sequence>
+        <TestCondition name="cond2"/>
+        <Sleep msec="200"/>
+      </Sequence>
+    </Parallel>
+  </BehaviorTree>
+</root>
+)";
+    BehaviorTreeFactory factory;
+    std::array<int, 2> tick_counts = { 0, 0 };
+
+    // Register conditions that count their ticks
+    factory.registerSimpleCondition("TestCondition", [&](TreeNode& node) {
+      const std::string& name = node.name();
+      if(name == "cond1")
+        tick_counts[0]++;
+      else if(name == "cond2")
+        tick_counts[1]++;
+      return NodeStatus::SUCCESS;
+    });
+
+    auto tree = factory.createTreeFromText(xml_text);
+
+    // First tick: both conditions evaluated
+    auto status = tree.tickExactlyOnce();
+    ASSERT_EQ(NodeStatus::RUNNING, status);
+    ASSERT_EQ(1, tick_counts[0]);  // cond1 ticked once
+    ASSERT_EQ(1, tick_counts[1]);  // cond2 ticked once
+
+    // Second tick: conditions should NOT be re-evaluated (Sequence behavior)
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    status = tree.tickExactlyOnce();
+    ASSERT_EQ(NodeStatus::RUNNING, status);
+    // Conditions are NOT re-ticked because Sequence remembers current_child_idx_
+    ASSERT_EQ(1, tick_counts[0]);  // Still 1 - NOT re-evaluated
+    ASSERT_EQ(1, tick_counts[1]);  // Still 1 - NOT re-evaluated
+  }
+
+  // Test 2: ReactiveSequence - condition IS re-evaluated every tick
+  {
+    static const char* xml_text = R"(
+<root BTCPP_format="4">
+  <BehaviorTree ID="TestTree">
+    <Parallel success_count="2" failure_count="1">
+      <ReactiveSequence>
+        <TestCondition name="cond1"/>
+        <Sleep msec="200"/>
+      </ReactiveSequence>
+      <ReactiveSequence>
+        <TestCondition name="cond2"/>
+        <Sleep msec="200"/>
+      </ReactiveSequence>
+    </Parallel>
+  </BehaviorTree>
+</root>
+)";
+    BehaviorTreeFactory factory;
+    std::array<int, 2> tick_counts = { 0, 0 };
+
+    factory.registerSimpleCondition("TestCondition", [&](TreeNode& node) {
+      const std::string& name = node.name();
+      if(name == "cond1")
+        tick_counts[0]++;
+      else if(name == "cond2")
+        tick_counts[1]++;
+      return NodeStatus::SUCCESS;
+    });
+
+    auto tree = factory.createTreeFromText(xml_text);
+
+    // First tick
+    auto status = tree.tickExactlyOnce();
+    ASSERT_EQ(NodeStatus::RUNNING, status);
+    ASSERT_EQ(1, tick_counts[0]);
+    ASSERT_EQ(1, tick_counts[1]);
+
+    // Second tick: conditions SHOULD be re-evaluated (ReactiveSequence behavior)
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    status = tree.tickExactlyOnce();
+    ASSERT_EQ(NodeStatus::RUNNING, status);
+    // Conditions ARE re-ticked because ReactiveSequence always starts from index 0
+    ASSERT_EQ(2, tick_counts[0]);  // Re-evaluated!
+    ASSERT_EQ(2, tick_counts[1]);  // Re-evaluated!
+  }
 }

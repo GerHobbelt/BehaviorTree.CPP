@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16.3) # version on Ubuntu Focal
 
-project(behaviortree_cpp VERSION 4.8.4 LANGUAGES C CXX)
+project(behaviortree_cpp VERSION 4.9.0 LANGUAGES C CXX)
 
 # create compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -25,7 +25,6 @@ option(FORCE_STATIC_LINKING "Force static linking of all dependencies" OFF)
 
 option(USE_VENDORED_CPPZMQ "Use the bundled version of cppzmq" ON)
 option(USE_VENDORED_FLATBUFFERS "Use the bundled version of flatbuffers" ON)
-option(USE_VENDORED_LEXY "Use the bundled version of lexy" ON)
 option(USE_VENDORED_MINICORO "Use the bundled version of minicoro" ON)
 option(USE_VENDORED_MINITRACE "Use the bundled version of minitrace" ON)
 
@@ -132,12 +131,6 @@ else()
     find_package(flatbuffers REQUIRED)
 endif()
 
-if(USE_VENDORED_LEXY)
-    add_subdirectory(3rdparty/lexy)
-else()
-    find_package(lexy REQUIRED)
-endif()
-
 if(USE_VENDORED_MINICORO)
     add_subdirectory(3rdparty/minicoro)
 else()
@@ -162,6 +155,7 @@ list(APPEND BT_SOURCE
     src/shared_library.cpp
     src/tree_node.cpp
     src/script_parser.cpp
+    src/script_tokenizer.cpp
     src/json_export.cpp
     src/xml_parsing.cpp
 
@@ -186,6 +180,7 @@ list(APPEND BT_SOURCE
     src/controls/sequence_node.cpp
     src/controls/sequence_with_memory_node.cpp
     src/controls/switch_node.cpp
+    src/controls/try_catch_node.cpp
     src/controls/while_do_else_node.cpp
 
     src/loggers/bt_cout_logger.cpp
@@ -229,7 +224,6 @@ target_link_libraries(${BTCPP_LIBRARY}
     PRIVATE
         Threads::Threads
         ${CMAKE_DL_LIBS}
-        $<BUILD_INTERFACE:foonathan::lexy>
         $<BUILD_INTERFACE:minitrace::minitrace>
         $<BUILD_INTERFACE:tinyxml2::tinyxml2>
         $<BUILD_INTERFACE:minicoro::minicoro>
@@ -317,7 +311,6 @@ file(WRITE ${PROJECT_SOURCE_DIR}/.clangd
     - -I${PROJECT_SOURCE_DIR}/3rdparty/minitrace
     - -I${PROJECT_SOURCE_DIR}/3rdparty/tinyxml2
     - -I${PROJECT_SOURCE_DIR}/3rdparty/minicoro
-    - -I${PROJECT_SOURCE_DIR}/3rdparty/lexy/include
 ")
 
 ######################################################
