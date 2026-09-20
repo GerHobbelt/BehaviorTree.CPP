@@ -282,6 +282,15 @@ Blackboard::Ptr Blackboard::parent()
 std::shared_ptr<Blackboard::Entry> Blackboard::createEntryImpl(const std::string& key,
                                                                const TypeInfo& info)
 {
+  // special syntax: "@" always refers to the root blackboard, the same
+  // redirection getEntry() applies. Without it, a key remapped to a root
+  // entry (port="{@foo}") is created here as a literal "@foo" entry that
+  // getEntry() then strips to "foo" and can never find again.
+  if(StartWith(key, '@'))
+  {
+    return rootBlackboard()->createEntryImpl(key.substr(1, key.size() - 1), info);
+  }
+
   const std::unique_lock storage_lock(storage_mutex_);
   // This function might be called recursively, when we do remapping, because we move
   // to the top scope to find already existing  entries

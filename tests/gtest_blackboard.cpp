@@ -636,6 +636,29 @@ TEST(BlackboardTest, RootBlackboard)
   ASSERT_EQ(4, tree.rootBlackboard()->get<int>("var5"));
 }
 
+TEST(BlackboardTest, RemapToRootBlackboard)
+{
+  // A subtree port remapped to a root key (XML: param="{@shared}") must resolve
+  // to the "shared" entry in the root blackboard. createEntryImpl used to create
+  // it as a literal "@shared" entry instead, so getEntry("param") -- which strips
+  // the '@' and looks up "shared" in the root -- never found it again. That made
+  // ImportBlackboardFromJSON dereference a null entry, and set()/get() disagree.
+  auto root = Blackboard::create();
+  auto child = Blackboard::create(root);
+  child->addSubtreeRemapping("param", "@shared");
+
+  nlohmann::json js;
+  js["param"] = 42;
+  ASSERT_NO_THROW(ImportBlackboardFromJSON(js, *child));
+
+  ASSERT_EQ(42, child->get<int>("param"));
+  ASSERT_EQ(42, root->get<int>("shared"));
+
+  child->set("param", 7);
+  ASSERT_EQ(7, child->get<int>("param"));
+  ASSERT_EQ(7, root->get<int>("shared"));
+}
+
 TEST(BlackboardTest, TimestampedInterface)
 {
   auto bb = BT::Blackboard::create();
