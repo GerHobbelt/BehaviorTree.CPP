@@ -773,7 +773,12 @@ NodeStatus Tree::tickRoot(TickOption opt, std::chrono::milliseconds sleep_time)
 
 void BlackboardRestore(const std::vector<Blackboard::Ptr>& backup, Tree& tree)
 {
-  assert(backup.size() == tree.subtrees.size());
+  if(backup.size() != tree.subtrees.size())
+  {
+    throw RuntimeError("BlackboardRestore: the backup contains ",
+                       std::to_string(backup.size()), " blackboards, but the tree has ",
+                       std::to_string(tree.subtrees.size()), " subtrees");
+  }
   for(size_t i = 0; i < tree.subtrees.size(); i++)
   {
     backup[i]->cloneInto(*(tree.subtrees[i]->blackboard));

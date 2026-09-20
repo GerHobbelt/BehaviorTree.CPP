@@ -542,6 +542,47 @@ TEST(BlackboardTest, BlackboardBackup)
   ASSERT_EQ(status, BT::NodeStatus::SUCCESS);
 }
 
+TEST(BlackboardTest, BlackboardRestoreSizeMismatch)
+{
+  BT::BehaviorTreeFactory factory;
+
+  const std::string one_subtree = R"(
+  <root BTCPP_format="4" main_tree_to_execute="SmallTree">
+    <BehaviorTree ID="SmallTree">
+      <AlwaysSuccess />
+    </BehaviorTree>
+  </root> )";
+
+  const std::string four_subtrees = R"(
+  <root BTCPP_format="4" main_tree_to_execute="BigTree">
+    <BehaviorTree ID="MySubtree">
+      <AlwaysSuccess />
+    </BehaviorTree>
+    <BehaviorTree ID="BigTree">
+      <Sequence>
+        <SubTree ID="MySubtree" />
+        <SubTree ID="MySubtree" name="second" />
+        <SubTree ID="MySubtree" name="third" />
+      </Sequence>
+    </BehaviorTree>
+  </root> )";
+
+  auto small_tree = factory.createTreeFromText(one_subtree);
+  const auto bb_backup = BlackboardBackup(small_tree);
+  ASSERT_EQ(bb_backup.size(), 1u);
+
+  auto big_tree = factory.createTreeFromText(four_subtrees);
+  ASSERT_EQ(big_tree.subtrees.size(), 4u);
+
+  // The backup is shorter than the number of subtrees: reject it instead of
+  // indexing past the end of the vector.
+  ASSERT_THROW(BlackboardRestore(bb_backup, big_tree), BT::RuntimeError);
+
+  // A backup taken from the same tree must still be accepted.
+  const auto big_backup = BlackboardBackup(big_tree);
+  ASSERT_NO_THROW(BlackboardRestore(big_backup, big_tree));
+}
+
 TEST(BlackboardTest, RootBlackboard)
 {
   BT::BehaviorTreeFactory factory;
