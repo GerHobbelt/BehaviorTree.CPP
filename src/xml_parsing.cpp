@@ -103,16 +103,6 @@ auto StrEqual = [](const char* str1, const char* str2) -> bool {
   return strcmp(str1, str2) == 0;
 };
 
-// Helper to format forbidden character for error messages
-std::string formatForbiddenChar(char c)
-{
-  if(c < 32 || c == 127)
-  {
-    return "control character (ASCII " + std::to_string(static_cast<int>(c)) + ")";
-  }
-  return std::string("'") + c + "'";
-}
-
 void validateModelName(const std::string& name, int line_number)
 {
   const auto line_str = std::to_string(line_number);
@@ -1236,8 +1226,8 @@ void BT::XMLParser::PImpl::recursivelyCreateSubtree(
         if(sub->instance_name == subtree_path)
         {
           throw RuntimeError("Duplicate SubTree path detected: '", subtree_path,
-                             "'. Multiple SubTree nodes with the same 'name' attribute "
-                             "under the same parent are not allowed. "
+                             "'. SubTree nodes in the same tree cannot share a 'name' "
+                             "attribute, even under different parent nodes. "
                              "Please use unique names or omit the 'name' attribute "
                              "to auto-generate unique paths.");
         }
